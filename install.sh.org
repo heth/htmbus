@@ -1,5 +1,5 @@
 #!/bin/bash
-
+echo "Rembember to install devicetree overlay. See uEnv.txt (Insert uboot_overlay_addr0=BB-UART4-00A0.dtbo)
 set -e # Halt on error
 #set -x # bash Debug setting
 INSTALLDIR="/usr/share/htmbus"
@@ -23,7 +23,7 @@ then
 	sed -i 's/^# da_DK.UTF-8 UTF-8/da_DK.UTF-8 UTF-8/g' /etc/locale.gen
 	locale-gen
 
-echo "Creting Users"
+echo "Creating Users"
 DAEMON="mbus"
 ADMIN="heth"
 if ! grep $DAEMON /etc/passwd
