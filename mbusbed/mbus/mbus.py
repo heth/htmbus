@@ -75,6 +75,11 @@ async def read_raw(devdesc):
     devdesc['count'] = devdesc['count'] + 1
     return stdout
 
+async def send2heth(data, broker):
+
+    args = ["-h", broker, "-t", "mbus/raw","-m", data]
+    process = await asyncio.create_subprocess_exec("mosquitto_pub", *args)
+    
 
 async def read(devdesc):
     """
@@ -88,6 +93,9 @@ async def read(devdesc):
     rawdata = await read_raw(devdesc)
     if rawdata == None:
         return None
+    if easyyaml.get('debug','mqttpub') == True:
+        broker = easyyaml.get('debug','mqttbroker')
+        await send2heth(rawdata,broker)
     root = ET.fromstring(rawdata)
     return root
 

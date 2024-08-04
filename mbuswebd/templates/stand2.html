@@ -1,37 +1,61 @@
 {% extends 'extend.html' %}
 {% block content %}
-  <script src="https://code.jquery.com/jquery-3.3.1.js"></script>
+  <!-- <script src="https://code.jquery.com/jquery-3.3.1.js"></script> -->
+<script src="https://ajax.googleapis.com/ajax/libs/jquery/3.7.1/jquery.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/socket.io/4.7.1/socket.io.js"></script>
+
 
 <script type="text/javascript">
     $(document).ready(function() {
     let siv = document.querySelector('.sc');
     siv.scrollIntoView({behavior: "smooth", block: "end", inline: "nearest"});
+    let srv = "http://" + "{{ server }}" + ":{{port}}";
+    var socket = io.connect(srv);
+
+    socket.on('kam603updatestand2',function(msg,cb) {
+    //    console.log('Got kam603update ' + msg.data)
+
+    let line='<tr>';
+    for (i in msg.data) {
+        line += `<td class="filterable-cell" align="right">${msg.data[i]}</td>`;
+    }
+    line += '</tr>'
+    $('#kam603line').append(line);
+    let siv = document.querySelector('.sc');
+    siv.scrollIntoView({ behavior: "smooth", block: "end", inline: "nearest" });
+    if (cb)
+        cb();
     });
+});
 </script>
 <head>
-  <style>
+ <style>
+
     .fixTableHead {
       overflow-y: auto;
-      height: 700px;
+      height: 90vh; /* 700px; */
     }
     .fixTableHead thead th {
       position: sticky;
-      top: 35px;
+      /* height: 3vh; */
+      top: 0px;  /* chrome 35px, edge 0px, */
+      /* top: 35px; */
     }
-    table {
+    /* table {
       border-collapse: collapse;
       width: 100%;
-    }
-    th,
-    td {
+    }*/
+    th, td {
       padding: 8px 15px;
-      border: 2px solid #529432;
+      border: 1px solid #529432;
+      /* position: sticky;
+      top: 0;*/
     }
     th {
-      background: #ABDD93;
+      background: #34cceb; //#347deb; //#ABDD93;
     }
     html, body{
-        position: top;
+        position: relative; /*top;*/
         max-width:100%;
         overflow-y:hidden;
     }
@@ -42,206 +66,14 @@
 <table class="table table-striped">
     <thead class="th">
     <tr>
-        <th>Make</th>
-        <th>Model</th>
-        <th>Color</th>
-        <th>Year</th>
+      {% for header in headings %}
+        <th>{{header}}</th>
+      {% endfor %}
     </tr>
     </thead>
-    <tbody  class="sc" style="height: 10px !important; overflow: scroll;">
-    <tr>
-        <td class="filterable-cell">Toyota</td>
-        <td class="filterable-cell">Escort</td>
-        <td class="filterable-cell">Blue</td>
-        <td class="filterable-cell">2000</td>
-    </tr>
-    <tr>
-        <td class="filterable-cell">Ford</td>
-        <td class="filterable-cell">Escort</td>
-        <td class="filterable-cell">Blue</td>
-        <td class="filterable-cell">2000</td>
-    </tr>
-            <tr>
-        <td class="filterable-cell">Ford</td>
-        <td class="filterable-cell">Escort</td>
-        <td class="filterable-cell">Blue</td>
-        <td class="filterable-cell">2000</td>
-    </tr>
-     <tr>
-        <td class="filterable-cell">Ford</td>
-        <td class="filterable-cell">Escort</td>
-        <td class="filterable-cell">Blue</td>
-        <td class="filterable-cell">2000</td>
-    </tr>
-     <tr>
-        <td class="filterable-cell">111 Ford</td>
-        <td class="filterable-cell">Escort</td>
-        <td class="filterable-cell">Blue</td>
-        <td class="filterable-cell">2000</td>
-    </tr>
-    <tr>
-        <td class="filterable-cell">Ford</td>
-        <td class="filterable-cell">Escort</td>
-        <td class="filterable-cell">Blue</td>
-        <td class="filterable-cell">2000</td>
-    </tr>
-            <tr>
-        <td class="filterable-cell">Ford</td>
-        <td class="filterable-cell">Escort</td>
-        <td class="filterable-cell">Blue</td>
-        <td class="filterable-cell">2000</td>
-    </tr>
-     <tr>
-        <td class="filterable-cell">Ford</td>
-        <td class="filterable-cell">Escort</td>
-        <td class="filterable-cell">Blue</td>
-        <td class="filterable-cell">2000</td>
-    </tr>
-     <tr>
-        <td class="filterable-cell">111 Ford</td>
-        <td class="filterable-cell">Escort</td>
-        <td class="filterable-cell">Blue</td>
-        <td class="filterable-cell">2000</td>
-    </tr>
-    <tr>
-        <td class="filterable-cell">Ford</td>
-        <td class="filterable-cell">Escort</td>
-        <td class="filterable-cell">Blue</td>
-        <td class="filterable-cell">2000</td>
-    </tr>
-            <tr>
-        <td class="filterable-cell">Ford</td>
-        <td class="filterable-cell">Escort</td>
-        <td class="filterable-cell">Blue</td>
-        <td class="filterable-cell">2000</td>
-    </tr>
-     <tr>
-        <td class="filterable-cell">Ford</td>
-        <td class="filterable-cell">Escort</td>
-        <td class="filterable-cell">Blue</td>
-        <td class="filterable-cell">2000</td>
-    </tr>
-     <tr>
-        <td class="filterable-cell">111 Ford</td>
-        <td class="filterable-cell">Escort</td>
-        <td class="filterable-cell">Blue</td>
-        <td class="filterable-cell">2000</td>
-    </tr>
-    <tr>
-        <td class="filterable-cell">Ford</td>
-        <td class="filterable-cell">Escort</td>
-        <td class="filterable-cell">Blue</td>
-        <td class="filterable-cell">2000</td>
-    </tr>
-            <tr>
-        <td class="filterable-cell">Ford</td>
-        <td class="filterable-cell">Escort</td>
-        <td class="filterable-cell">Blue</td>
-        <td class="filterable-cell">2000</td>
-    </tr>
-     <tr>
-        <td class="filterable-cell">Ford</td>
-        <td class="filterable-cell">Escort</td>
-        <td class="filterable-cell">Blue</td>
-        <td class="filterable-cell">2000</td>
-    </tr>
-     <tr>
-        <td class="filterable-cell">111 Ford</td>
-        <td class="filterable-cell">Escort</td>
-        <td class="filterable-cell">Blue</td>
-        <td class="filterable-cell">2000</td>
-    </tr>
-    <tr>
-        <td class="filterable-cell">Ford</td>
-        <td class="filterable-cell">Escort</td>
-        <td class="filterable-cell">Blue</td>
-        <td class="filterable-cell">2000</td>
-    </tr>
-            <tr>
-        <td class="filterable-cell">Ford</td>
-        <td class="filterable-cell">Escort</td>
-        <td class="filterable-cell">Blue</td>
-        <td class="filterable-cell">2000</td>
-    </tr>
-     <tr>
-        <td class="filterable-cell">Ford</td>
-        <td class="filterable-cell">Escort</td>
-        <td class="filterable-cell">Blue</td>
-        <td class="filterable-cell">2000</td>
-    </tr>
-     <tr>
-        <td class="filterable-cell">111 Ford</td>
-        <td class="filterable-cell">Escort</td>
-        <td class="filterable-cell">Blue</td>
-        <td class="filterable-cell">2000</td>
-    </tr>
-    <tr>
-        <td class="filterable-cell">Ford</td>
-        <td class="filterable-cell">Escort</td>
-        <td class="filterable-cell">Blue</td>
-        <td class="filterable-cell">2000</td>
-    </tr>
-            <tr>
-        <td class="filterable-cell">Ford</td>
-        <td class="filterable-cell">Escort</td>
-        <td class="filterable-cell">Blue</td>
-        <td class="filterable-cell">2000</td>
-    </tr>
-     <tr>
-        <td class="filterable-cell">Ford</td>
-        <td class="filterable-cell">Escort</td>
-        <td class="filterable-cell">Blue</td>
-        <td class="filterable-cell">2000</td>
-    </tr>
-     <tr>
-        <td class="filterable-cell">111 Ford</td>
-        <td class="filterable-cell">Escort</td>
-        <td class="filterable-cell">Blue</td>
-        <td class="filterable-cell">2000</td>
-    </tr>
-    <tr>
-        <td class="filterable-cell">Ford</td>
-        <td class="filterable-cell">Escort</td>
-        <td class="filterable-cell">Blue</td>
-        <td class="filterable-cell">2000</td>
-    </tr>
-            <tr>
-        <td class="filterable-cell">Ford</td>
-        <td class="filterable-cell">Escort</td>
-        <td class="filterable-cell">Blue</td>
-        <td class="filterable-cell">2000</td>
-    </tr>
-     <tr>
-        <td class="filterable-cell">Ford</td>
-        <td class="filterable-cell">Escort</td>
-        <td class="filterable-cell">Blue</td>
-        <td class="filterable-cell">2000</td>
-    </tr>
-     <tr>
-        <td class="filterable-cell">111 Ford</td>
-        <td class="filterable-cell">Escort</td>
-        <td class="filterable-cell">Blue</td>
-        <td class="filterable-cell">2000</td>
-    </tr>
-    <tr>
-        <td class="filterable-cell">Ford</td>
-        <td class="filterable-cell">Escort</td>
-        <td class="filterable-cell">Blue</td>
-        <td class="filterable-cell">2000</td>
-    </tr>
-            <tr>
-        <td class="filterable-cell">Ford</td>
-        <td class="filterable-cell">Escort</td>
-        <td class="filterable-cell">Blue</td>
-        <td class="filterable-cell">2000</td>
-    </tr>
-     <tr>
-        <td class="filterable-cell">Dacia</td>
-        <td class="filterable-cell">Escort</td>
-        <td class="filterable-cell">Blue</td>
-        <td class="filterable-cell">2000</td>
-    </tr>
+    <tbody  class="sc" style="height: 20px; overflow: scroll;" id="kam603line">
     </tbody>
 
 </table>
+</div>
 {% endblock %}

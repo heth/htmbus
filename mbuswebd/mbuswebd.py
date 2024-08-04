@@ -42,8 +42,9 @@ nav.register_element('mbus_navbar', Navbar(branding, #'Main menu',
                                            View('Stand 1', 'stand1'),
                                            View('Stand 2', 'stand2'),
                                            View('Alle stande', 'alldevices'),
-                                           View('Status stande', 'statusdevices'),
+#                                           View('Status stande', 'statusdevices'),
                                            ))
+
 def scroll_worker():
     print("scroll_worker starts")
     count=0
@@ -76,9 +77,11 @@ def index():
     return render_template('index.html')
 
 @app.route("/statusdevices")
-def statusdevices():
+async def statusdevices():
+    devstat = await nats_thread.devicesget()
+    print("Devstat  = {}".format(devstat))
     # Example:  [{"address": "68", "timestamp": 1722343820, "count": 826, "error": 0, "device_name": "stand1", "delta": {"\u0394Power": 0, "\u0394Vol flow": 0.0, "\u0394Energy": 1}, "manufacturer": "KAM", "version": "53", "name": "Kamstrup Multical 603"}
-    return render_template('devices.html')
+    return render_template('devices.html',status=devstat)
 
 @app.route("/stand1")
 def stand1():
@@ -96,20 +99,6 @@ def stand2():
         headings.append(i[0])
     return render_template('stand2.html',headings=headings)
 
-@app.route("/csvfile/<name>")
-def csvfile():
-    headings = ("Fabrikant","Model","Farve","Årstal")
-    # Appending app path to upload folder path within app root folder
-    #uploads = os.path.join(current_app.root_path, app.config['static/doc'])
-    uploads = os.path.join(app.root_path, 'static/doc')
-    #filename="hej"
-    print("Directory" + uploads,flush=True)
-    # Returning file from appended path
-    #return send_from_directory(directory=uploads, filename="hej")
-    return send_from_directory(uploads, "hej")
-    return render_template('dokumentation.html',headings=headings)
-
-
 @socketio.on('connect')
 def kam603_connect():
     global threads
@@ -118,11 +107,9 @@ def kam603_connect():
     print("IPADDR: " + str(ipaddr))
     print("SERVER: " + str(server[0]) + " All: " + str(server))
     #emit('after connect', {'data': 'Lets dance'})
-    print("About to start worker")
     if threads < number_of_threads:
         threads = threads + 1
         socketio.start_background_task(scroll_worker)
-        print("-------------------------------------------> WORKER STARTED")
 
 
 #@app.route("/alldevices/<name>")
@@ -133,6 +120,9 @@ async def alldevices():
     for i in headline:
         headings.append(i[0])
     return render_template('alldevices.html',headings=headings)
+
+def gunicornstart():
+    asyncio.run(main())
 
 def main():
     easyyaml.init(yamlfile)

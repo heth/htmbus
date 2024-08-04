@@ -1,0 +1,86 @@
+#!/bin/bash
+set -e # Halt on error
+#set -x
+INSTALLDIR="/usr/share/htmbus"
+
+if [ $EUID -ne 0 ]
+then 
+	echo -e "ERROR: You need root credentials to run this script"
+	exit
+fi
+
+if [ -d $INSTALLDIR ]
+then
+	echo -e "Installation directory $INSTALLDIR already exist!"
+	exit
+fi
+echo "Checking if DK locale settings installed"
+if grep -v da_DK.utf8 - <<< $(locale -a)
+then
+	LOCALE="da_DK.utf8"
+	echo "Installing support for $LOCALE"
+	sed -i 's/^# da_DK.UTF-8 UTF-8/da_DK.UTF-8 UTF-8/g' /etc/locale.gen
+	locale-gen
+
+echo "Creting Users"
+DAEMON="mbus"
+ADMIN="heth"
+if ! grep $DAEMON /etc/passwd
+then
+	adduser --disabled-login --no-create-home --system $DAEMON
+fi
+if ! grep $ADMIN /etc/passwd
+then
+	adduser $ADMIN
+fi
+
+
+echo "Preparing Beagleboard black"
+echo "Prepared for: Debian GNU/Linux 12 (bookworm)"
+if [ `lsb_release -rs 2>/dev/null` -ne 12 ]
+then 
+	echo "WARNING: You are installing on GNU/Linux `lsb_release -rs 2>/dev/null`"
+	sleep 5
+fi
+echo "Make sure ttyS4 is operational - see: https://mars.merhot.dk/w/index.php/Beaglebone_Black/Flashing#Missing_UART4"
+echo "Setting timezone"
+timedatectl set-timezone Europe/Copenhagen
+echo "Dowloading config-pin"
+if ! wget https://raw.githubusercontent.com/beagleboard/bb.org-overlays/master/tools/beaglebone-universal-io/config-pin
+then
+	echo "    Download failed"
+	exit
+fi
+cp config-pin /usr/bin 
+echo "Installing nats client tool"
+echo "   See: https://github.com/nats-io/natscli/releases"
+apt install ./sw/natscli/nats-0.1.1-arm7.deb
+
+mkdir $INSTALLDIR
+
+echo -e "Installing displayd"
+DISPLAYDDIR=${INSTALLDIR}/displayd
+mkdir $DISPLAYDDIR
+cp ./displayd/*.py $DISPLAYDDIR
+cp ./displayd/install.sh $DISPLAYDDIR
+cp ./displayd/displayd.service $DISPLAYDDIR
+cd $DISPLAYDDIR
+./install.sh
+cp displayd.service /etc/systemd/system
+systemctl daemon-reload
+systemctl enable displayd.service
+systemctl enable displayd.service
+# systemctl is-enabled displayd.service
+#enabled
+systemctl start displayd.service
+echo "Done: Display service should be working now"
+
+echo "Installing libmbus"
+if test -x 
+#cd libmbus
+#./configure
+#make
+#make install
+#ln -s /usr/local/lib/libmbus.so.0 /usr/lib/  # Hack to debian
+
+
