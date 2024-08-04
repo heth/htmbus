@@ -1,4 +1,5 @@
 #!/bin/bash
+
 set -e # Halt on error
 #set -x
 INSTALLDIR="/usr/share/htmbus"
