@@ -1,0 +1,14 @@
+[Unit]
+Description=M-Bus back end  service
+After=network.target
+Before=nginx.service
+
+[Service]
+ExecStart=PYTHONNAME SERVICENAME
+Type=simple
+Restart=always
+
+
+[Install]
+WantedBy=default.target
+RequiredBy=network.target

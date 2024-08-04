@@ -1,0 +1,62 @@
+# NATS used between the following components (daemons):
+#  - mbusbed  - M-Bus back end daemon (Does the actual M-Bus work)
+#  - displayd - Display daemon - Show IP adrress and other stuff on display
+#  - mbustb   - M-Bus ThingsBoard daemon - Communicates with IoT ThingsBoard using MQTT
+#  - mbusweb  - Flask WEB-server daemon - showing basic information on M-Bus devices
+
+
+#NATS - common setup between daemons 
+nats:
+  devicetopic: "mbus.device.>"
+  request: "mbus.request"
+  connect_str: "nats://127.0.0.1:4222" 
+  subtopic_data: "data"
+  subtopic_error: "error"
+  mbusdevice: "mbus.device."
+
+log:
+  level: 3    # 3 = Error, 4 = Warning, 6 = Informational, 7 = Debug
+  tty: False
+  syslog: True
+  file: False
+  filename: ''
+
+
+# MQTT used between MBUS device and Thingsboard (daemon mbustb)
+mqtt:
+  devicetopic: "v1/devices/me/telemetry"
+  gatewaytopic: "v1/gateway/telemetry"
+  request: "v1/devices/me/rpc/request/+"
+  brokerip: "192.168.1.78"
+  brokerport: "1883"
+  username: "heth"
+  password: "l8heise"
+  clientid: "vvs2"
+  keepalive: 300
+
+# M-Bus communication with Meter devices using serial communication
+# Used by mbusbed daemon
+mbus:
+  tty: "/dev/ttyS4"
+  baud: 9600
+  pollinterval: 60
+  csvdir: "/var/www/data/kam603/" # CSV files directory
+  devices:
+    - {name: "stand1", address: 68}
+    - {name: "stand2", address: 69}
+    #- {name: "stand3", address: 70}
+    #- {name: "stand4", address: 71}
+    
+# Small 3.3 volts 2x20 characters LCD display
+# Used by displayd daemon
+display:
+  i2cbus: 2
+  i2caddr: 0x3C
+  gpiochip: "/dev/gpiochip1"
+  gpiopin: 19
+  cmd_reg: 0x00
+  data_reg: 0x40
+  line1: 0x80
+  line2: 0xC0
+  network: "eth0"
+  displaytopic: "display.text"

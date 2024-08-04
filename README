@@ -1,0 +1,22 @@
+
+
+
+PREREQUISITES:
+==============
+
+-libmbus
+ Either clone from https://github.com/rscada/libmbus and install it
+  or
+ Download source or package from http://www.rscada.se/libmbus and install it
+
+
+ -python3.11
+
+
+
+ REMEMBER:
+ =========
+
+ When updating:
+  - pip freeze > requirements.txt
+  - check git status

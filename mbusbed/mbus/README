@@ -1,0 +1,135 @@
+
+kam603 tuple explanation
+========================
+
+Data retrived with the libmbus module are in XML format. Each data record are numbered, but sequence order is
+not guaranteed. Identification of the individual data record is done by looking at the different XML tags.
+
+Example of three data records:
+----------------------------
+
+    <DataRecord id="8">
+        <Function>Instantaneous value</Function>
+        <StorageNumber>0</StorageNumber>
+        <Unit>Flow temperature (1e-2 deg C)</Unit>
+        <Value>2129</Value>
+        <Timestamp>2023-07-01T09:33:10Z</Timestamp>
+    </DataRecord>
+
+    <DataRecord id="11">
+        <Function>Instantaneous value</Function>
+        <StorageNumber>0</StorageNumber>
+        <Unit>Power (100 W)</Unit>
+        <Value>4</Value>
+        <Timestamp>2023-07-01T09:33:10Z</Timestamp>
+    </DataRecord>
+
+    <DataRecord id="13">
+        <Function>Instantaneous value</Function>
+        <StorageNumber>0</StorageNumber>
+        <Unit>Volume flow (m m^3/h)</Unit>
+        <Value>100</Value>
+        <Timestamp>2023-07-01T09:33:10Z</Timestamp>
+    </DataRecord>
+
+    <DataRecord id="14">
+        <Function>Maximum value</Function>
+        <StorageNumber>0</StorageNumber>
+        <Unit>Volume flow (m m^3/h)</Unit>
+        <Value>123</Value>
+        <Timestamp>2023-07-01T09:33:10Z</Timestamp>
+    </DataRecord>
+
+    <DataRecord id="24">
+        <Function>Maximum value</Function>
+        <StorageNumber>1</StorageNumber>
+        <Unit>Volume flow (m m^3/h)</Unit>
+        <Value>7123</Value>
+        <Timestamp>2023-07-01T09:33:10Z</Timestamp>
+    </DataRecord>
+----------------------------
+
+As seen from these three data record examples it is necesary to look at a combination of tags to identify the individual data record.
+DataRecord id numbers not guaranteed to be the same for the same product.
+
+To uniquely identify a data record it is necesary to identify the follwing tags, if present:
+  <Unit>, <Function> and <StorageNumber> but also <Device>, <Tariff> and <Extension> are used in some data records
+
+Three arrays:
+  1: kam603xmlrec - Two dimentional array with wanted xml records that identify a specific data record - non mutable
+  2: kam603format - Two dimentional array with wanted data fields from the data recors identified by kam603xmlrec - non mutable (Same order as kam603xmlrec)
+  3: kam603data   - Data extracted from xml stream using kam603xmlrec and kam603format - mutable
+
+kam603xmlrec:
+=============
+
+Order of fields: <Function>,<StoragteNumber>,<Unit>,<Value>,<Timestamp>,<Device>,<Tariff>
+Comparison is made with regular expressions 
+
+
+mbustags = ('Function','StoragteNumber','Unit','Value','Timestamp','Device','Tariff')
+
+To identify the example data records from above:
+
+kam603xmlrec = (
+  ('extra', None, None, None, None, None, None),  # Extra: Counter
+  ('extra', None, None, None, None, None, None),  # Extra: Date - added as server date
+  ('Instantaneous value','0','Flow temperature.*',None,None,None,None),
+  ('Instantaneous value','0','Power.*',None,None,None,None),
+  ('Instantaneous value','0','Power.*',None,None,None,None),
+  ('Instantaneous value','0','Volume flow.*',None,None,None,None),
+  ('Maximum value','0','Volume flow.*',None,None,None,None),
+  ('Maximum value','1','Volume flow.*',None,None,None,None),
+)
+
+kam603format:
+=============
+
+Describe which data should be extracted from identified datarecord, datatype, unit description and eventual conversion
+
+NOTE: Must be in same order and length as kam603xmlrec
+
+Fields:
+ -[0] - Descriptor  - how to interpretate the line
+ -Remaining fields can have different interpretaions, depending on desciptor field
+
+Descriptor field can contain:
+ - Value: Exact value as reported
+ - Delta: Delta value since reset
+ - Extra: Date, time and other special fields
+
+kam603format = (
+  ('extra','Count', 'int',None,None,None),            
+  ('extra','Date', 'str','Local',None,None),            # Timstamp - int, UTC - str, Local - str
+  ('Value','Flow temp', 'float','\xboC','divide',100),     # Extract Value field, convert to float and divide by 100 [21.29 °C] - '\xb0C' = °C
+  ('Value','Power', 'int','W','multiply',100),             # Extract Value field, convert to int and multiply with 10  [400 W]
+  ('Delta',u'\u0394' + "Power", 'int','W','multiply',100),             # Extract Value field, convert to int and multiply with 10  [400 W] (Show as Delta value)
+  ('Value','Vol flow', 'int','m^3',None,None),             # Extract Value field and convert to int   [100 m^3]
+  ('Value','Max vol flow','int','m^3',None,None),          # Extract Value field and convert to int   [123 m^3]
+  ('Value','Max vol flow - stored','int','m^3',None,None), # Extract Value field and convert to int   [7123 m^3]
+)
+
+kam603data:
+===========
+
+kam603data will upon return contain:
+
+
+kam603 = [
+  ['Flow temp','float', 21.29,'\xb0C'],
+  ['Power','int',400,'W'],
+  ['?Power','int',36,'W'],     # ? represents unicode delta-sign
+  ['Vol flow','int',100,'m^3'],
+  ['Max vol flow','int',123,'m^3'],
+  ['Max vol flow - stored','int',7123,'m^3'],
+]
+
+See main_example.py for example usage
+
+Saving values:
+==============
+
+SQLite?
+
+Always save latest fetch - easy to do delta
+Save in file - get last line

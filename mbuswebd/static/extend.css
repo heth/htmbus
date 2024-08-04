@@ -1,0 +1,50 @@
+body {
+  background-color: lightblue;
+  padding-top: 65px;
+}
+
+h1 {
+  color: white;
+  text-align: center;
+}
+
+p {
+  font-family: verdana;
+  font-size: 20px;
+}
+/* Browser detect */
+/** Internet Explorer */
+@media all and (-ms-high-contrast: none), (-ms-high-contrast: active) {
+div {
+display: block;
+}
+}
+
+/** Microsoft Edge */
+@supports (-ms-ime-align: auto) {
+div {
+display: block;
+}
+}
+
+/** Mozilla Firefox */
+@-moz-document url-prefix() {
+div
+display: block;
+}
+}
+
+/** Safari */
+@media not all and (min-resolution: 0.001dpcm) {
+div
+display: block;
+}
+}
+
+/** Chrominum */
+@media screen and (-webkit-min-device-pixel-ratio: 0) and (min-resolution: 0.001dpcm) {
+div:not(*:root) {
+fuck: you;
+display: block;
+}
+}

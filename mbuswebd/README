@@ -1,0 +1,11 @@
+
+
+ERRORS:
+=======
+ If encountering the error: AttributeError: module 'collections' has no attribute 'MutableMapping'
+ 
+ make the following change:
+  vi venv/lib/python3.10/site-packages/flask_nav/__init__.py
+  change import collections to import collections.abc as collections
+
+

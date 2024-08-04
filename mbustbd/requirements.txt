@@ -1,0 +1,11 @@
+aiomqtt @ git+https://github.com/sbtinstruments/aiomqtt@61ed18fe0240a13718a589077906b84efcacebe3
+certifi==2024.7.4
+charset-normalizer==3.3.2
+gmqtt==0.6.16
+idna==3.7
+nats-py==2.8.0
+paho-mqtt==2.1.0
+PyYAML==6.0.1
+requests==2.32.3
+sdnotify==0.3.2
+urllib3==2.2.2

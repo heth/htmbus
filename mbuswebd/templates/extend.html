@@ -1,0 +1,28 @@
+<!doctype html>
+<html>
+{% extends "bootstrap/base.html" %}
+{% block styles %}
+{{super()}}
+<link rel="shortcut icon" href="{{ url_for('static', filename='favicon.ico') }}">
+<link rel="stylesheet"
+      href="{{url_for('.static', filename='extend.css')}}">
+  <head>
+  {% block navbar %}
+  <!-- <nav class="navbar navbar-default navbar-static-top"> -->
+    <nav class="navbar navbar-fixed-top">
+
+  	<div class="container-fluid">
+
+  	<a href="#" class="navbar-brand">
+           <!-- <img src="static/MBusLogo240.jpg" height="28" alt="Mercantec M-Bus"> -->
+    </a>
+        {{ nav.mbus_navbar.render() }}
+  	</div>
+  </nav>
+  {% endblock %}
+  </head>
+  <body>
+{% endblock %}
+  </body>
+</html>
+

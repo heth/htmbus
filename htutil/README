@@ -1,0 +1,6 @@
+This folder contains commom utilities for several services.
+
+Should have made a pythopn package and installed it in those services,
+but diden't get that far.
+
+This folder is linked inside these services.
