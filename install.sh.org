@@ -1,7 +1,7 @@
 #!/bin/bash
 
 set -e # Halt on error
-#set -x
+#set -x # Debug
 INSTALLDIR="/usr/share/htmbus"
 
 if [ $EUID -ne 0 ]
