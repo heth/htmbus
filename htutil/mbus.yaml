@@ -4,6 +4,10 @@
 #  - mbustb   - M-Bus ThingsBoard daemon - Communicates with IoT ThingsBoard using MQTT
 #  - mbusweb  - Flask WEB-server daemon - showing basic information on M-Bus devices
 
+debug:
+  mqttpub: True
+  mqttsub: False
+  mqttbroker: "93.166.84.21"
 
 #NATS - common setup between daemons 
 nats:
@@ -27,11 +31,15 @@ mqtt:
   devicetopic: "v1/devices/me/telemetry"
   gatewaytopic: "v1/gateway/telemetry"
   request: "v1/devices/me/rpc/request/+"
-  brokerip: "192.168.1.78"
+  #brokerip: "192.168.1.78"
+  brokerip: "10.128.201.15"
   brokerport: "1883"
-  username: "heth"
-  password: "l8heise"
-  clientid: "vvs2"
+  #username: "heth"
+  #password: "l8heise"
+  #clientid: "vvs2"
+  username: "sohp"
+  password: "VVS2024!"
+  clientid: "vvs1"
   keepalive: 300
 
 # M-Bus communication with Meter devices using serial communication
@@ -60,3 +68,7 @@ display:
   line2: 0xC0
   network: "eth0"
   displaytopic: "display.text"
+
+web:
+  csvserver: "10.128.201.14"
+

@@ -74,7 +74,9 @@ def navpage():
 
 @app.route("/")
 def index():
-    return render_template('index.html')
+    broker=easyyaml.get('mqtt','brokerip') # Broker contains ThingsBoard
+    csvserver=easyyaml.get('web','csvserver') # Broker contains ThingsBoard
+    return render_template('index.html',broker=broker, csvserver=csvserver)
 
 @app.route("/statusdevices")
 async def statusdevices():
