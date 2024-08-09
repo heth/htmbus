@@ -14,17 +14,6 @@ $(VENV)/bin/activate: requirements.txt
 		echo "Linking shared utilities";\
 		ln -s ../htutil .;\
 	fi
-	@if test ! -d $(CSVDIR); then\
-		echo "Creating CSV directory";\
-		sudo mkdir $(CSVDIR);\
-		chown mbus:mbus $(CSVDIR);\
-	fi
-	#git clone https://github.com/rscada/libmbus.git;\
-	#cd limbus;\
-	#./confugure;\
-	#make;\
-	#make install;\
-	#ln -s /usr/local/lib/libmbus.so.0 /usr/lib/  # Hack to debian
 
 
 
@@ -33,6 +22,11 @@ run:
 	$(PYTHON) $(SERVICE).py
 
 install: $(SERVICE).service
+	@if test ! -d $(CSVDIR); then\
+		echo "Creating CSV directory";\
+		sudo mkdir -p $(CSVDIR);\
+		chown debian:debian $(CSVDIR);\
+	fi
 	@if test -f $(SYSTEMDDIR)/$(SERVICE).service; then\
 		echo "$(SYSTEMDDIR)/$(SERVICE).service already exists - run 'make uninstall' first";\
 		exit 1;\

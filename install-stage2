@@ -1,0 +1,134 @@
+#!/bin/bash
+echo "Rembember to install devicetree overlay. See uEnv.txt (Insert uboot_overlay_addr0=BB-UART4-00A0.dtbo)"
+set -e # Halt on error
+#set -x # bash Debug setting
+INSTALLDIR="/usr/share/htmbus"
+run_cmd() {
+	#if $@ 1>/dev/null 2>&1
+	if $@ #1>/dev/null 2>&1
+	then
+		return 0
+	else
+		echo "ERROR: running command $@"
+		exit 1
+	fi
+}
+perror() {
+	printf "ERROR: %s\n" "$*" >&2
+}
+
+if [ $EUID -ne 0 ]
+then 
+	echo -e "ERROR: You need root credentials to run this script"
+	exit
+fi
+
+if [ -d $INSTALLDIR ]
+then
+	echo -e "Installation directory $INSTALLDIR already exist!"
+	exit
+fi
+echo "Preparing Beagleboard black"
+echo "Prepared for: Debian GNU/Linux 12 (bookworm)"
+if [ `lsb_release -rs 2>/dev/null` -ne 12 ]
+then 
+	echo "WARNING: You are installing on GNU/Linux `lsb_release -rs 2>/dev/null`"
+	sleep 5
+fi
+echo "Checking if DK locale settings installed"
+if ! grep -q 'da_DK.utf8' - <<< $(locale -a)
+then
+	LOCALE="da_DK.utf8"
+	echo "Installing support for $LOCALE"
+	sed -i 's!# da_DK.UTF-8 UTF-8!da_DK.UTF-8 UTF-8!' /etc/locale.gen
+	locale-gen
+fi
+
+TZ="Europe/Copenhagen"
+echo "Checking timezone is $TZ"
+if ! grep -q $TZ - <<< $(timedatectl)
+then
+	echo "Setting timezone to $TZ"
+	run_cmd timedatectl set-timezone $TZ
+fi
+echo "Creating Users"
+DAEMON="mbus"
+#ADMIN="heth"
+if ! grep $DAEMON /etc/passwd
+then
+	sudo adduser --disabled-login --no-create-home --system --group --comment "M-bus user" $DAEMON
+	groupmod --users $DAEMON dialout  # Permission to use serial lines
+	groupmod --users $DAEMON systemd-journal
+	groupmod --users $DAEMON i2c
+	groupmod --users $DAEMON gpio
+fi
+#if ! grep $ADMIN /etc/passwd
+#then
+#	adduser $ADMIN
+#fi
+
+echo -en "Cheking if nats-server installed.....: "
+if ! systemctl status nats-server > /dev/null 2>&1
+then
+	echo -e "[Not installed]\nInstalling"
+	apt -y install nats-server
+else
+	echo -e "[Installed]"
+fi
+
+echo -en "Cheking if nats-client installed.....: "
+if  ! nats >/dev/null 2>&1 
+then
+	echo -e "[Not installed]\nInstalling"
+	wget https://github.com/nats-io/natscli/releases/download/v0.1.5/nats-0.1.5-arm7.deb
+	apt -y install ./nats-0.1.5-arm7.deb
+else
+	echo -e "[Installed]"
+fi
+
+echo -en "Cheking if libmbus and M-Bus client installed.....: "
+if  ! mbus-serial-request-data >/dev/null 2>&1 
+then
+	echo -e "[Not installed]\nInstalling"
+    run_cmd git clone https://github.com/rscada/libmbus
+    cd libmbus/
+    run_cmd ./build-deb.sh
+    run_cmd ./configure
+    run_cmd make 
+    run_cmd make install
+    # libmbus installs shared libs in /usr/local/lib
+    echo "/usr/local/lib" >> /etc/ld.so.conf
+    ldconfig
+else
+	echo -e "[Installed]"
+fi
+#uboot_overlay_addr0=BB-UART4-00A0.dtbo
+#uboot_overlay_addr0=/boot/dtbs/5.10.168-ti-r79/overlays/BB-UART4-00A0.dtbo
+#uboot_overlay_addr0=<file0>.dtbo
+
+echo -en "Cheking if UART4 device tree installed.....: "
+UART4OVERLAY="BB-UART4-00A0.dtbo"
+if ! grep -q $UART4OVERLAY /boot/uEnv.txt
+then
+	echo -e "[Not installed]\nInstalling"
+	UBOOTVAR="uboot_overlay_addr0"
+	OVERLAYFILE="/boot/dtbs/$(uname -r)/overlays/${UART4OVERLAY}"
+	if test ! -f $OVERLAYFILE
+	then
+	   perror "Missing device tree overlay: $OVERLAYFILE"
+	   echo "Fuck"
+	   exit 1
+	fi
+	sed -i "s!#${UBOOTVAR}=<file0>.dtbo!${UBOOTVAR}=${OVERLAYFILE}!" /boot/uEnv.txt
+	if ! grep -q $UART4OVERLAY /boot/uEnv.txt
+	then
+	   perror "Substitution failed in file /boot/uEnv.txt setting: ${UBOOTVAR}=${OVERLAYFILE}"
+	   exit
+	fi
+else
+	echo -e "[Installed]"
+fi
+echo "================================================================"
+echo "To install and enable M-Bus services run: sudo ./installservices"
+echo "================================================================"
+

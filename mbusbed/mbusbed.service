@@ -6,6 +6,8 @@ Before=nginx.service
 [Service]
 ExecStart=PYTHONNAME SERVICENAME
 Type=simple
+User=mbus
+Group=mbus
 Restart=always
 
 

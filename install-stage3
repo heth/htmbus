@@ -1,0 +1,47 @@
+#!/usr/bin/bash
+SERVICES="mbusbed mbustbd mbuswebd displayd"
+USER=debian
+
+perror() {
+        printf "ERROR: %s\n" "$*" >&2
+}
+if [ $EUID -ne 0 ]
+then
+        echo -e "ERROR: You need root credentials to run this script"
+        exit
+fi
+
+if ! test -f /etc/mbus/mbus.yaml
+then
+	mkdir /etc/mbus
+	chown debian:debian /etc/mbus
+    cp mbus.yaml /etc/mbus
+	chown debian:debian /etc/mbus/mbus.yaml
+fi
+
+echo "Installing python3 venv (virtual environment)"
+if ! apt -y install python3-venv
+then
+	perror "python3 venv installation failed"
+	exit 1
+fi
+for SERVICE in $SERVICES
+do
+	echo "Installing $SERVICE - running make"
+	cd $SERVICE
+	if ! sudo -H -u $USER make
+	then
+		perror "make failed on service $SERVICE"
+		exit 1
+	fi
+	echo "Installing $SERVICE - running make install"
+
+	if ! make install
+	then
+		perror "make install failed on service $SERVICE"
+		exit 1
+	fi
+    cd ..
+done
+echo "All services installed"
+
