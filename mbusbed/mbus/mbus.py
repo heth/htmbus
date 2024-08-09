@@ -41,11 +41,13 @@ def init(ttyline="/dev/ttyS4", baudrate=9600):
     global baud
     tty = ttyline
     baud = baudrate
-    if ttyline == "/dev/ttyS4":
-        sub = subprocess.run(["config-pin", "P9_11", "uart"],
-                             shell=False, capture_output=True)
-        sub = subprocess.run(["config-pin", "P9_13", "uart"],
-                             shell=False, capture_output=True)
+
+    # config-pin not used on debian bookworm (ver 12) - uses devicetree overlays 
+    #if ttyline == "/dev/ttyS4":
+    #    sub = subprocess.run(["config-pin", "P9_11", "uart"],
+    #                         shell=False, capture_output=True)
+    #    sub = subprocess.run(["config-pin", "P9_13", "uart"],
+    #                         shell=False, capture_output=True)
 
 
 def open(address):
