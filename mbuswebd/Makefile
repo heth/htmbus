@@ -3,6 +3,8 @@ PYTHON = $(VENV)/bin/python3
 PIP = $(VENV)/bin/pip
 SERVICE=mbuswebd
 SYSTEMDDIR=/etc/systemd/system/
+NGINX_CONF=/etc/nginx/nginx.conf
+NGINX_CONF_BU=/etc/nginx/nginx.conf.backup
 
 
 
@@ -42,6 +44,15 @@ install: $(SERVICE).service
 		sudo systemctl enable $(SERVICE).service;\
 		sudo systemctl start $(SERVICE).service;\
 	fi
+	@if ! grep "M-Bus" $(NGINX_CONF); then\
+		echo "Reconfiguring nginx";\
+		sudo apt install libnginx-mod-http-fancyindex;\
+		sudo cp $(NGINX_CONF) $(NGINX_CONF_BU);\
+		sudo systemctl stop nginx;\
+		sudo cp ./nginx.conf $(NGINX_CONF);\
+		sudo systemctl start nginx;\
+	fi
+
 
 uninstall:
 	@if test ! -f $(SYSTEMDDIR)/$(SERVICE).service; then\
@@ -52,6 +63,13 @@ uninstall:
 		sudo systemctl disable $(SERVICE).service;\
 		sudo rm  $(SYSTEMDDIR)/$(SERVICE).service ;\
 		sudo systemctl daemon-reload;\
+	fi
+
+	@if grep "M-Bus" $(NGINX_CONF); then\
+			if test -f $(NGINX_CONF_BU); then\
+				echo "Reconfiguring nginx to original";\
+				sudo cp $(NGINX_CONF_BU) $(NGINX_CONF);\
+		fi;\
 	fi
 	
 clean:

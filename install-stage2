@@ -3,6 +3,7 @@ echo "Rembember to install devicetree overlay. See uEnv.txt (Insert uboot_overla
 set -e # Halt on error
 #set -x # bash Debug setting
 INSTALLDIR="/usr/share/htmbus"
+USER=debian
 run_cmd() {
 	#if $@ 1>/dev/null 2>&1
 	if $@ #1>/dev/null 2>&1
@@ -56,7 +57,7 @@ DAEMON="mbus"
 #ADMIN="heth"
 if ! grep $DAEMON /etc/passwd
 then
-	sudo adduser --disabled-login --no-create-home --system --group --comment "M-bus user" $DAEMON
+	adduser --disabled-login --no-create-home --system --group --comment "M-bus user" $DAEMON
 	groupmod --users $DAEMON dialout  # Permission to use serial lines
 	groupmod --users $DAEMON systemd-journal
 	groupmod --users $DAEMON i2c
@@ -90,11 +91,11 @@ echo -en "Cheking if libmbus and M-Bus client installed.....: "
 if  ! mbus-serial-request-data >/dev/null 2>&1 
 then
 	echo -e "[Not installed]\nInstalling"
-    run_cmd git clone https://github.com/rscada/libmbus
+    run_cmd sudo -H -u $USER git clone https://github.com/rscada/libmbus
     cd libmbus/
-    run_cmd ./build-deb.sh
-    run_cmd ./configure
-    run_cmd make 
+    run_cmd sudo -H -u $USER ./build-deb.sh
+    run_cmd sudo -H -u $USER ./configure
+    run_cmd sudo -H -u $USER make 
     run_cmd make install
     # libmbus installs shared libs in /usr/local/lib
     echo "/usr/local/lib" >> /etc/ld.so.conf
