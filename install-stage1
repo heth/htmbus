@@ -35,3 +35,7 @@ else
         printf "ERROR: %d packages failed - see logfile: %s\n" $DIRTY $LOGFILE
 fi
 printf "**************************************************\n"
+echo "================================================================"
+echo "To install and prepare device for M-bus: sudo ./install-stage2"
+echo "================================================================"
+
