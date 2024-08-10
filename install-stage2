@@ -2,7 +2,6 @@
 echo "Rembember to install devicetree overlay. See uEnv.txt (Insert uboot_overlay_addr0=BB-UART4-00A0.dtbo)"
 set -e # Halt on error
 #set -x # bash Debug setting
-INSTALLDIR="/usr/share/htmbus"
 USER=debian
 run_cmd() {
 	#if $@ 1>/dev/null 2>&1
@@ -24,11 +23,6 @@ then
 	exit
 fi
 
-if [ -d $INSTALLDIR ]
-then
-	echo -e "Installation directory $INSTALLDIR already exist!"
-	exit
-fi
 echo "Preparing Beagleboard black"
 echo "Prepared for: Debian GNU/Linux 12 (bookworm)"
 if [ `lsb_release -rs 2>/dev/null` -ne 12 ]
@@ -57,7 +51,7 @@ DAEMON="mbus"
 #ADMIN="heth"
 if ! grep $DAEMON /etc/passwd
 then
-	adduser --disabled-login --no-create-home --system --group --comment "M-bus user" $DAEMON
+	sudo adduser --disabled-login --no-create-home --system --group --comment "M-bus user" $DAEMON
 	groupmod --users $DAEMON dialout  # Permission to use serial lines
 	groupmod --users $DAEMON systemd-journal
 	groupmod --users $DAEMON i2c
@@ -87,26 +81,6 @@ else
 	echo -e "[Installed]"
 fi
 
-echo -en "Cheking if libmbus and M-Bus client installed.....: "
-if  ! mbus-serial-request-data >/dev/null 2>&1 
-then
-	echo -e "[Not installed]\nInstalling"
-    run_cmd sudo -H -u $USER git clone https://github.com/rscada/libmbus
-    cd libmbus/
-    run_cmd sudo -H -u $USER ./build-deb.sh
-    run_cmd sudo -H -u $USER ./configure
-    run_cmd sudo -H -u $USER make 
-    run_cmd make install
-    # libmbus installs shared libs in /usr/local/lib
-    echo "/usr/local/lib" >> /etc/ld.so.conf
-    ldconfig
-else
-	echo -e "[Installed]"
-fi
-#uboot_overlay_addr0=BB-UART4-00A0.dtbo
-#uboot_overlay_addr0=/boot/dtbs/5.10.168-ti-r79/overlays/BB-UART4-00A0.dtbo
-#uboot_overlay_addr0=<file0>.dtbo
-
 echo -en "Cheking if UART4 device tree installed.....: "
 UART4OVERLAY="BB-UART4-00A0.dtbo"
 if ! grep -q $UART4OVERLAY /boot/uEnv.txt
@@ -129,7 +103,4 @@ then
 else
 	echo -e "[Installed]"
 fi
-echo "================================================================"
-echo "To install and enable M-Bus services run: sudo ./install-stage3"
-echo "================================================================"
 
