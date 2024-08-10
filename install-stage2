@@ -70,7 +70,14 @@ then
 else
 	echo -e "[Installed]"
 fi
-
+echo -en "Cheking if mosquitto clients is installed.....: "
+if ! mosquitto_sub > /dev/null 2>&1
+then
+	echo -e "[Not installed]\nInstalling"
+	apt -y install mosquitto-clients
+else
+	echo -e "[Installed]"
+fi
 echo -en "Cheking if nats-client installed.....: "
 if  ! nats >/dev/null 2>&1 
 then

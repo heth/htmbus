@@ -5,7 +5,7 @@
 #  - mbusweb  - Flask WEB-server daemon - showing basic information on M-Bus devices
 
 debug:
-  mqttpub: True
+  mqttpub: False
   mqttsub: False
   mqttbroker: "93.166.84.21"
   mqttsubject: "mbus/debug/raw"

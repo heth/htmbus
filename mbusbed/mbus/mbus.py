@@ -87,7 +87,6 @@ async def debug_mqtt_pub(data):
 async def debug_mqtt_get(devdesc):
     broker = easyyaml.get('debug','mqttbroker')
     subject = easyyaml.get('debug','mqttsubject')
-    print("Entering broker {} subject {}".format(broker,subject))
 
     args = ["-C", "1" , "-h", broker, "-t", subject]
     process = await asyncio.create_subprocess_exec("mosquitto_sub", *args, stdout=asyncio.subprocess.PIPE, stderr=asyncio.subprocess.PIPE)
@@ -98,7 +97,6 @@ async def debug_mqtt_get(devdesc):
         return None
     devdesc['timestamp'] = int(time.time())
     devdesc['count'] = devdesc['count'] + 1
-    print("Got: {}".format(stdout))
     return stdout
     
 
