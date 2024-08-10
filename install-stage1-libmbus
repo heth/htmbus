@@ -1,0 +1,64 @@
+#!/usr/bin/env bash
+
+LIBMBUS_PACK=libmbus1_0.9.0_armhf.deb
+if [ $EUID -ne 0 ]
+then
+        echo -e "ERROR: You need root credentials to run this script"
+        exit
+fi
+
+install_c_dev_tools() {
+LIST="man-db build-essential manpages-dev glibc-doc dpkg-dev linux-doc
+        user-mode-linux-doc libssl-dev docbook docbook-xml devscripts
+        docbook-xsl xsltproc libsystemd-dev libltdl-dev libcjson1
+        libcjson-dev libltdl-dev gdb tmux"
+LOGFILE="./apt-install.log"
+echo "" > $LOGFILE
+DIRTY=0
+
+for PACK in $LIST
+do
+        printf "Installerer %s\n" $PACK
+        if apt -y install $PACK
+        then
+                printf "Package %s OK\n" $PACK >> $LOGFILE
+        else
+                printf "Package %s FAILED......................\n" $PACK >> $LOGFILE
+                let DIRTY=DIRTY+1
+        fi
+done
+printf "\n\n**************************************************\n"
+if test $DIRTY -eq 0
+then
+        printf "Seems all look good - all packages OK\n"
+else
+        printf "ERROR: %d packages failed - see logfile: %s\n" $DIRTY $LOGFILE
+fi
+printf "**************************************************\n"
+echo -en "Cheking if libmbus and M-Bus client installed.....: "
+}
+
+
+# Install libmbus if not already installed
+if  ! mbus-serial-request-data >/dev/null 2>&1
+then
+    echo -e "[Not installed]\nInstalling"
+	if test -f $LIBMBUS_PACK
+	then
+		apt -y install $LIBMBUS_PACK
+	else	
+		install_c_dev_tools
+   		run_cmd sudo -H -u $USER git clone https://github.com/rscada/libmbus
+   		cd libmbus/
+    	run_cmd sudo -H -u $USER ./build-deb.sh
+    	run_cmd sudo -H -u $USER ./configure
+    	run_cmd sudo -H -u $USER make
+    	run_cmd make install
+    	# libmbus installs shared libs in /usr/local/lib
+    	echo "/usr/local/lib" >> /etc/ld.so.conf
+    	ldconfig
+    fi
+else
+        echo -e "[Installed]"
+fi
+
