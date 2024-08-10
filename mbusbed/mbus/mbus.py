@@ -77,10 +77,29 @@ async def read_raw(devdesc):
     devdesc['count'] = devdesc['count'] + 1
     return stdout
 
-async def send2heth(data, broker):
+async def debug_mqtt_pub(data):
+    broker = easyyaml.get('debug','mqttbroker')
+    subject = easyyaml.get('debug','mqttsubject')
 
-    args = ["-h", broker, "-t", "mbus/raw","-m", data]
+    args = ["-h", broker, "-t", subject,"-m", data]
     process = await asyncio.create_subprocess_exec("mosquitto_pub", *args)
+    
+async def debug_mqtt_get(devdesc):
+    broker = easyyaml.get('debug','mqttbroker')
+    subject = easyyaml.get('debug','mqttsubject')
+    print("Entering broker {} subject {}".format(broker,subject))
+
+    args = ["-C", "1" , "-h", broker, "-t", subject]
+    process = await asyncio.create_subprocess_exec("mosquitto_sub", *args, stdout=asyncio.subprocess.PIPE, stderr=asyncio.subprocess.PIPE)
+    stdout, stderr = await process.communicate()
+    if len(stdout) == 0:
+        log.warn("read_raw() debug read from mqtt  broker {} subject {} failed.".format(broker,subject))
+        devdesc['error'] = devdesc['error'] + 1
+        return None
+    devdesc['timestamp'] = int(time.time())
+    devdesc['count'] = devdesc['count'] + 1
+    print("Got: {}".format(stdout))
+    return stdout
     
 
 async def read(devdesc):
@@ -91,13 +110,15 @@ async def read(devdesc):
     On error returns None
 
     """
+    if easyyaml.get('debug','mqttsub') == True:
+        rawdata = await debug_mqtt_get(devdesc)
+    else:
+        rawdata = await read_raw(devdesc)
 
-    rawdata = await read_raw(devdesc)
     if rawdata == None:
         return None
     if easyyaml.get('debug','mqttpub') == True:
-        broker = easyyaml.get('debug','mqttbroker')
-        await send2heth(rawdata,broker)
+        await debug_mqtt_pub(rawdata)
     root = ET.fromstring(rawdata)
     return root
 

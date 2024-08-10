@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 
-LIBMBUS_PACK=libmbus1_0.9.0_armhf.deb
+LIBMBUS_PACK=./libmbus1_0.9.0_armhf.deb
 if [ $EUID -ne 0 ]
 then
         echo -e "ERROR: You need root credentials to run this script"

@@ -10,8 +10,3 @@ sudo apt -y update
 sudo apt -y upgrade
 sudo -H -u $USER cp vimrc /home/$USER/.vimrc
 ./install-stage1-libmbus
-echo "Reboot before proceding with install-stage2"
-echo "\nPress enter to reboot"
-read LINE
-shutdown -r 0
-

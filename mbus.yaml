@@ -8,6 +8,7 @@ debug:
   mqttpub: True
   mqttsub: False
   mqttbroker: "93.166.84.21"
+  mqttsubject: "mbus/debug/raw"
 
 #NATS - common setup between daemons 
 nats:
