@@ -77,6 +77,7 @@ async def read_raw(devdesc):
     devdesc['count'] = devdesc['count'] + 1
     return stdout
 
+# Only for debugging/development purposes
 async def debug_mqtt_pub(data):
     broker = easyyaml.get('debug','mqttbroker')
     subject = easyyaml.get('debug','mqttsubject')
@@ -84,6 +85,7 @@ async def debug_mqtt_pub(data):
     args = ["-h", broker, "-t", subject,"-m", data]
     process = await asyncio.create_subprocess_exec("mosquitto_pub", *args)
     
+# Only for debugging/development purposes
 async def debug_mqtt_get(devdesc):
     broker = easyyaml.get('debug','mqttbroker')
     subject = easyyaml.get('debug','mqttsubject')
@@ -108,14 +110,18 @@ async def read(devdesc):
     On error returns None
 
     """
+
     if easyyaml.get('debug','mqttsub') == True:
+        # Only for debugging/development purposes
         rawdata = await debug_mqtt_get(devdesc)
     else:
+        # Normal read from M-Bus
         rawdata = await read_raw(devdesc)
 
     if rawdata == None:
         return None
     if easyyaml.get('debug','mqttpub') == True:
+        # Only for debugging/development purposes
         await debug_mqtt_pub(rawdata)
     root = ET.fromstring(rawdata)
     return root

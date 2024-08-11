@@ -4,11 +4,6 @@
 #  - mbustb   - M-Bus ThingsBoard daemon - Communicates with IoT ThingsBoard using MQTT
 #  - mbusweb  - Flask WEB-server daemon - showing basic information on M-Bus devices
 
-debug:
-  mqttpub: False
-  mqttsub: False
-  mqttbroker: "93.166.84.21"
-  mqttsubject: "mbus/debug/raw"
 
 #NATS - common setup between daemons 
 nats:
@@ -27,7 +22,7 @@ log:
   filename: ''
 
 
-# MQTT used between MBUS device and Thingsboard (daemon mbustb)
+# MQTT used between MBUS gateway and Thingsboard (daemon mbustb)
 mqtt:
   devicetopic: "v1/devices/me/telemetry"
   gatewaytopic: "v1/gateway/telemetry"
@@ -73,3 +68,15 @@ display:
 web:
   csvserver: "10.128.201.14"
 
+# Debug section
+# Used while developing htmbus system while in production
+# htmbus system 1: Production device reading from M-Bus devices 
+#    Publishes a copy of raw (XML coded) M-Bus metrics to MQTT-broker
+# htmbus system 2: Development device - do not read from M-Bus devices but -
+#    Subscribes raw (XML coded) metrics from MQTT-broker 
+#
+debug:
+  mqttpub: False                # Publish a copy of read M-Bus metrics to MQTT-broker
+  mqttsub: False                # Subscribe for M-Bus metrics from MQTT-broker instead of reading M-Bus 
+  mqttbroker: "93.166.84.21"    
+  mqttsubject: "mbus/debug/raw"
