@@ -10,25 +10,29 @@ htmbus is the measuring and visualization of a project for an energy measurement
 ## Logical topology view
 ![Logical topology view](/docs/pics/htmbus%20logical%20topology.png)
 
-PREREQUISITES:
-==============
+## Hardware installation
+See: [Harware installation](https://mars.merhot.dk/w/index.php/M-bus_Linux#Hardware_configuration)
+## Software installation
+### Installaing new debian image on micro-SD card
+1: Remove micro-SD card (If any)
+2: Boot from buildin image on on-board flash (mmcblk1)
+3: insert micro-SD card (Minimum 8 Gb) 
+4: Run: sudo bash
+5: Run: wget --no-check-certificate -qO- https://mars.merhot.dk/data/bbb/am335x-debian-12.2-iot-armhf-2023-10-07-4gb.img.xz | xzcat | dd bs=10M of=/dev/mmcblk0 status=progress
+6: Run: shutdown -r 0
+7: login after boot and check boot device is mmcblk0p1 - run: df -h
+### Install htmbus and necesary software
+1: login as debian - or another added user with a home directory
+2: run: git clone https://github.com/heth/htmbus.git
+3: run: cd htmbus
+4: run: sudo ./install-stage1
+5: run: sudo ./install-stage2
+6: run: sudo shutdown -r 0
+7: login as same user again
+8: run: cd htmbus
+9: run: sudo ./install-stage3
+10: If everything works - check all four daemons running with: systemctl | grep -P "display|mbus"
 
--libmbus
- Either clone from https://github.com/rscada/libmbus and install it
-  or
- Download source or package from http://www.rscada.se/libmbus and install it
-
-
- -python3.11
-
-
-
- REMEMBER:
- =========
-
- When updating:
-  - pip freeze > requirements.txt
-  - check git status
 
 
 
