@@ -5,7 +5,7 @@ htmbus is the measuring and visualization of a project for an energy measurement
 - A [BeagleBone Black](https://www.beagleboard.org/boards/beaglebone-black) as gateway between M-Bus and Ethernet - running this htmbus software (And a little extra hardware - described elsewhere)
 - A [Intel NUC13ANHI3000](https://www.intel.com/content/dam/support/us/en/documents/intel-nuc/NUC13AN_TechProdSpec.pdf) running [ThingsBoard](https://thingsboard.io/)
 ## Topology
-[Topology view of project](/docs/pics/htmbus_topology.png)
+![Topology view of project](/docs/pics/htmbus_topology.png)
 
 
 
