@@ -8,7 +8,7 @@ htmbus is the measuring and visualization of a project for an energy measurement
 ![Physical topology view of project](/docs/pics/htmbus_topology.png)
 
 ## Logical topology view
-![Logical topology view[/docs/pics/htmbus%20logical%20topology.png]
+![Logical topology view](/docs/pics/htmbus%20logical%20topology.png)
 
 PREREQUISITES:
 ==============
