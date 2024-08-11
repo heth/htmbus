@@ -32,7 +32,8 @@ See: [Harware installation](https://mars.merhot.dk/w/index.php/M-bus_Linux#Hardw
 8. run: cd htmbus
 9. run: sudo ./install-stage3
 10. If everything works - check all four daemons running with: systemctl | grep -P "display|mbus"
-
+## htmbus configuration
+Most used configuration variables are in mbus.yaml (Installed in /etc/mbus/ directory on running system)
 
 
 
