@@ -2,8 +2,9 @@
 Description=M-Bus display service
 After=network.target
 Before=nginx.service
-StartLimitIntervalSec=30
-StartLimitBurst=2
+StartLimitIntervalSec=60
+StartLimitBurst=12
+RestartSec=5
 
 
 [Service]
