@@ -3,7 +3,7 @@ htmbus is the measuring and visualization of a project for an energy measurement
 
 - htmbus consists of several wired M-Bus [Meter-Bus](https://m-bus.com/) devices.
 - A [BeagleBone Black](https://www.beagleboard.org/boards/beaglebone-black) as gateway between M-Bus and Ethernet - running this htmbus software (And a little extra hardware - described elsewhere)
-  - For the low level M-Bus protocol conversion _htmbus_ use [rscada/libmbus](/rscada/libmbus)
+  - For the low level M-Bus protocol conversion _htmbus_ use [rscada/libmbus](https://github.com/rscada/libmbus)
 - A [Intel NUC13ANHI3000](https://www.intel.com/content/dam/support/us/en/documents/intel-nuc/NUC13AN_TechProdSpec.pdf) running [ThingsBoard](https://thingsboard.io/)
 ## Physical topology view
 ![Physical topology view of project](/docs/pics/htmbus_topology.png)
