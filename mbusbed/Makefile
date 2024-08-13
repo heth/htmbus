@@ -25,7 +25,7 @@ install: $(SERVICE).service
 	@if test ! -d $(CSVDIR); then\
 		echo "Creating CSV directory";\
 		sudo mkdir -p $(CSVDIR);\
-		chown debian:debian $(CSVDIR);\
+		chown mbus:mbus $(CSVDIR);\
 	fi
 	@if test -f $(SYSTEMDDIR)/$(SERVICE).service; then\
 		echo "$(SYSTEMDDIR)/$(SERVICE).service already exists - run 'make uninstall' first";\
@@ -47,7 +47,7 @@ install: $(SERVICE).service
 	@if test ! -d $(CSVDIR); then\
 		echo "Creating CSV directory";\
 		sudo mkdir $(CSVDIR);\
-		sudo chown mbus:mbus $(CSVDIR);\
+		sudo chown -R mbus:mbus $(CSVDIR);\
 		sudo chmod 775 $(CSVDIR);\
 	fi
 	@if test ! -x /usr/local/bin/mbus-serial-request-data; then\
