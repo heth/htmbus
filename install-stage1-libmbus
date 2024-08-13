@@ -35,8 +35,8 @@ else
         printf "ERROR: %d packages failed - see logfile: %s\n" $DIRTY $LOGFILE
 fi
 printf "**************************************************\n"
-echo -en "Cheking if libmbus and M-Bus client installed.....: "
 }
+echo -en "Cheking if libmbus and M-Bus client installed.....: "
 
 
 # Install libmbus if not already installed

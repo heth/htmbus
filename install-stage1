@@ -1,5 +1,15 @@
 #!/usr/bin/env bash
-USER=debian
+export USER=debian
+run_cmd() {
+        if $@ #1>/dev/null 2>&1
+        then
+                return 0
+        else
+                echo "ERROR: running command $@"
+                exit 1
+        fi
+}
+
 if [ $EUID -ne 0 ]
 then
         echo -e "ERROR: You need root credentials to run this script"
@@ -10,4 +20,4 @@ sudo apt -y update
 sudo apt -y upgrade
 sudo apt -y install man-db
 sudo -H -u $USER cp vimrc /home/$USER/.vimrc
-./install-stage1-libmbus
+. ./install-stage1-libmbus

@@ -4,7 +4,6 @@ set -e # Halt on error
 #set -x # bash Debug setting
 USER=debian
 run_cmd() {
-	#if $@ 1>/dev/null 2>&1
 	if $@ #1>/dev/null 2>&1
 	then
 		return 0
@@ -48,7 +47,6 @@ then
 fi
 echo "Creating Users"
 DAEMON="mbus"
-#ADMIN="heth"
 if ! grep $DAEMON /etc/passwd
 then
 	sudo adduser --disabled-login --no-create-home --system --group --comment "M-bus user" $DAEMON
@@ -57,10 +55,6 @@ then
 	groupmod --users $DAEMON i2c
 	groupmod --users $DAEMON gpio
 fi
-#if ! grep $ADMIN /etc/passwd
-#then
-#	adduser $ADMIN
-#fi
 
 echo -en "Cheking if nats-server installed.....: "
 if ! systemctl status nats-server > /dev/null 2>&1
@@ -71,7 +65,7 @@ else
 	echo -e "[Installed]"
 fi
 echo -en "Cheking if mosquitto clients is installed.....: "
-if ! mosquitto_sub > /dev/null 2>&1
+if ! which mosquitto_sub > /dev/null 2>&1
 then
 	echo -e "[Not installed]\nInstalling"
 	apt -y install mosquitto-clients
