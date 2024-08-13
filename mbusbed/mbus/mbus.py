@@ -78,21 +78,27 @@ async def read_raw(devdesc):
     return stdout
 
 # Only for debugging/development purposes
-async def debug_mqtt_pub(data):
+async def debug_mqtt_pub(devdesc,data):
     broker = easyyaml.get('debug','mqttbroker')
-    subject = easyyaml.get('debug','mqttsubject')
+    subject = "{}/{}".format(easyyaml.get('debug','mqttsubject'),devdesc['address'])
 
+    if data == None:
+        data=''
     args = ["-h", broker, "-t", subject,"-m", data]
     process = await asyncio.create_subprocess_exec("mosquitto_pub", *args)
     
 # Only for debugging/development purposes
-async def debug_mqtt_get(devdesc):
+async def debug_mqtt_sub(devdesc):
     broker = easyyaml.get('debug','mqttbroker')
-    subject = easyyaml.get('debug','mqttsubject')
+    #subject = easyyaml.get('debug','mqttsubject')
+    subject = "{}/{}".format(easyyaml.get('debug','mqttsubject'),devdesc['address'])
 
     args = ["-C", "1" , "-h", broker, "-t", subject]
     process = await asyncio.create_subprocess_exec("mosquitto_sub", *args, stdout=asyncio.subprocess.PIPE, stderr=asyncio.subprocess.PIPE)
     stdout, stderr = await process.communicate()
+    #print("Address: {} got {}".format(devdesc['address'],stdout))
+    if stdout == '':
+        stdout=None
     if len(stdout) == 0:
         log.warn("read_raw() debug read from mqtt  broker {} subject {} failed.".format(broker,subject))
         devdesc['error'] = devdesc['error'] + 1
@@ -113,16 +119,16 @@ async def read(devdesc):
 
     if easyyaml.get('debug','mqttsub') == True:
         # Only for debugging/development purposes
-        rawdata = await debug_mqtt_get(devdesc)
+        rawdata = await debug_mqtt_sub(devdesc)
     else:
         # Normal read from M-Bus
         rawdata = await read_raw(devdesc)
 
-    if rawdata == None:
-        return None
     if easyyaml.get('debug','mqttpub') == True:
         # Only for debugging/development purposes
-        await debug_mqtt_pub(rawdata)
+        await debug_mqtt_pub(devdesc,rawdata)
+    if rawdata == None:
+        return None
     root = ET.fromstring(rawdata)
     return root
 
@@ -266,3 +272,4 @@ def parse(devdesc, in_data, mbus_records, display_format):
                     out_data[ri][2] = out_data[ri][2] - devdesc['delta'][display_format[ri].Text]
 
     return(out_data)
+

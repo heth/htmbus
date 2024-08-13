@@ -114,7 +114,11 @@ async def main():
         # Cheating - All use same time interval
         mbuscount = mbuscount + 1
         await nc.publish(easyyaml.get('display','displaytopic'), bytes("Count: {}".format(mbuscount), 'utf-8'))
-        await asyncio.sleep(easyyaml.get('mbus','pollinterval'))
+
+        # Dont sleep when in debug mode as MQTT subscriber (Wait for MQTT publisher instead)
+        if easyyaml.get('debug','mqttsub') != True:
+            await asyncio.sleep(easyyaml.get('mbus','pollinterval'))
+
 
 
 if __name__ == '__main__':

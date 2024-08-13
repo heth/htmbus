@@ -48,7 +48,7 @@ mbus:
   devices:
     - {name: "stand1", address: 68}
     - {name: "stand2", address: 69}
-    #- {name: "stand3", address: 70}
+    #- {vendor: 'KAM', model: 53, name: "stand3", address: 70}
     #- {name: "stand4", address: 71}
     
 # Small 3.3 volts 2x20 characters LCD display
