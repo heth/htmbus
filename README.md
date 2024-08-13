@@ -17,7 +17,7 @@ See: [Harware installation](https://mars.merhot.dk/w/index.php/M-bus_Linux#Hardw
 ### Installaing new debian image on micro-SD card
 1. Remove micro-SD card (If any)
 2. Boot from buildin image on on-board flash (mmcblk1)
-3. insert micro-SD card (Minimum 8 Gb) 
+3. insert micro-SD card (Minimum 8 GB) 
 4. Run: sudo bash
 5. Run: wget -qO- https://files.beagle.cc/file/beagleboard-public-2021/images/am335x-debian-12.2-iot-armhf-2023-10-07-4gb.img.xz | xzcat | dd bs=10M of=/dev/mmcblk0 status=progress
 6. Run: shutdown -r 0
