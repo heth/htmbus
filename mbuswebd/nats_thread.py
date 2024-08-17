@@ -23,6 +23,7 @@ def init():
     natglo['thread']=threading.Thread(target=start_background_loop, args=(natglo['loop'],), daemon=True)
     natglo['thread'].start()
     task = asyncio.run_coroutine_threadsafe(nats_thread(), natglo['loop'])
+    natglo['lock'] = threading.Lock()
 
 # nats_start() starts nats - called from thread initialized in init()
 async def nats_start(subject):
@@ -54,7 +55,7 @@ async def nats_start(subject):
     #print("headline = {}".format(natglo['headline'].data))
     print("headline = {}".format(natglo['headline']))
     print("NATS started on subject: {}".format(subject))
-    natglo['lock'] = threading.Lock()
+    #natglo['lock'] = threading.Lock()
     natglo['lock'].acquire()
 
 async def nats_sub_handler(msg):

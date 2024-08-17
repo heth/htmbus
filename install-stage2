@@ -50,10 +50,10 @@ DAEMON="mbus"
 if ! grep $DAEMON /etc/passwd
 then
 	sudo adduser --disabled-login --no-create-home --system --group --comment "M-bus user" $DAEMON
-	groupmod --users $DAEMON dialout  # Permission to use serial lines
-	groupmod --users $DAEMON systemd-journal
-	groupmod --users $DAEMON i2c
-	groupmod --users $DAEMON gpio
+	groupmod --append --users $DAEMON dialout  # Permission to use serial lines
+	groupmod --append --users $DAEMON systemd-journal
+	groupmod --append --users $DAEMON i2c
+	groupmod --append --users $DAEMON gpio
 fi
 
 echo -en "Cheking if nats-server installed.....: "

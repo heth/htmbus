@@ -19,5 +19,6 @@ fi
 sudo apt -y update
 sudo apt -y upgrade
 sudo apt -y install man-db
+sudo apt -y remove nginx
 sudo -H -u $USER cp vimrc /home/$USER/.vimrc
 . ./install-stage1-libmbus

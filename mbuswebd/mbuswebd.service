@@ -4,7 +4,8 @@ After=network.target
 Before=nginx.service
 
 [Service]
-ExecStart=PYTHONNAME SERVICENAME
+#ExecStart=PYTHONNAME SERVICENAME
+ExecStart=SERVICENAME
 Type=simple
 User=mbus
 Group=mbus

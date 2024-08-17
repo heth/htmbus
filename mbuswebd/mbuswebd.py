@@ -22,6 +22,7 @@ from htutil import easyyaml
 from htutil import easyjson
 import nats_thread
 #import threading
+import gevent
 
 # Init is here when running unicorn - __main__ never runs
 yamlfile="/etc/mbus/mbus.yaml"
@@ -31,7 +32,9 @@ work_queue = Queue()
 async_mode=None
 
 app = Flask(__name__, instance_relative_config=True)  # Relative_config looks in templates dir
-socketio = SocketIO(app,async_mode=async_mode)
+socketio = SocketIO(app,async_mode="threading")
+#socketio = SocketIO(app,async_mode=async_mode)
+#AutoIndex(app, browse_root="/var/www/data/kam603")
 nav = Nav(app)
 Bootstrap(app)
 img()
@@ -45,12 +48,14 @@ nav.register_element('mbus_navbar', Navbar(branding, #'Main menu',
 #                                           View('Status stande', 'statusdevices'),
                                            ))
 
+
 def scroll_worker():
     print("scroll_worker starts")
     count=0
 
     while True:
         rawdata = nats_thread.dataget()
+        #print("rawdata is {}".format(rawdata))
         
         # Field 2 in entries contain data
         data=[]
@@ -58,6 +63,7 @@ def scroll_worker():
             data.append(i[2])
 
         socketio.emit('kam603updateall', {'data': data})
+
         count = count + 1
         if data[2] == 'stand1':
             socketio.emit('kam603updatestand1', {'data': data})
@@ -67,10 +73,14 @@ def scroll_worker():
         print("-----------------------> Count: {}                                       ".format(count),end='\r',flush=True)
 
 
+@app.route("/ai")
+def ai():
+    AutoIndex(app, browse_root="/var/www/data/kam603")
+    return render_template('ai.html')
+
 @app.route("/navpage")
 def navpage():
     return render_template('navpage.html')
-
 
 @app.route("/")
 def index():
@@ -123,17 +133,23 @@ async def alldevices():
         headings.append(i[0])
     return render_template('alldevices.html',headings=headings)
 
-def gunicornstart():
-    asyncio.run(main())
 
 def main():
     easyyaml.init(yamlfile)
     # Start asyncio event loop in new thread
     # See: https://gist.github.com/dmfigol/3e7d5b84a16d076df02baa9f53271058?permalink_comment_id=3895920
     nats_thread.init()
-    app.run(debug=False,host="0.0.0.0")
+    #app.run(debug=False,host="0.0.0.0")
+    print("Socket")
+    socketio.run(app)
     
+def wsgi_start():
+    print("WSGI-Start")
+    easyyaml.init(yamlfile)
+    nats_thread.init()
 
 if __name__ == '__main__':
-    asyncio.run(main())
+    asyncio.run(main())  # Flask running in debug mode
+else:
+    wsgi_start() # When using wsgi by example gunicorn
 
