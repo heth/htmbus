@@ -70,22 +70,13 @@ display_format = (
 # Array of dictionaries
 
 
-def init(tty, baudrate):
+#def init(devdesc):
+def init(tty,baudrate):
     locale.setlocale(locale.LC_ALL, 'da_DK.UTF-8') # For creating , as decimal point in float in CSV-file
     mbus.init(tty, baudrate)
 
 
-async def open(address, device_name):
-    """Creat device-descriptor to M-Bus device. Needed for further access such as read()."""
-    devdesc = mbus.open(address)
-    devdesc.update(
-        {
-            'device_name': device_name,
-            'csvfile': None
-        }
-    )
-    devdesc['csvfile'] = None
-    await clear_delta(devdesc)
+async def open(devdesc):
     return(devdesc)
 
 def parse_json(devdesc, mbus_data):

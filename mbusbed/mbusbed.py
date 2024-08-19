@@ -4,10 +4,9 @@ import re
 import sdnotify         # Systemd notify - communicate with systemd service
 import json
 import asyncio
-from threading import Thread, Event, Lock
 import nats
 from nats.errors import ConnectionClosedError, TimeoutError, NoServersError
-from mbus import kam603
+from mbus import GenericDevice as gendev
 from htutil import log
 from htutil import easyyaml
 '''
@@ -16,9 +15,8 @@ Abbreviation Table:
     dev = DEV = device
 '''
 #Global array of opened M-Bus devices and their status (Used in main() and nats_reply_cb()
-open_dev = []
+devdesc_arr = []
 yamlfile="/etc/mbus/mbus.yaml"
-
 # Serialize object to json and encode as bytes
 def json_ser(object):
     json_string = json.dumps(object)
@@ -35,9 +33,9 @@ def signal_handler(sig):
     exit()
 
 def devdesc_get(device_name):
-    for index in range(len(open_dev)):
-        if open_dev[index]['device_name'] == device_name:
-            return(open_dev[index])
+    for index in range(len(devdesc_arr)):
+        if devdesc_arr[index]['device_name'] == device_name:
+            return(devdesc_arr[index])
     return(None) # Not found
 
 async def nats_reply_cb(msg):
@@ -48,9 +46,9 @@ async def nats_reply_cb(msg):
     match message: 
         case 'devices':
             # csvfile object is not JSON serializable
-            # Hack to remove csvfile object from open_dev
+            # Hack to remove csvfile object from devdesc_arr
             alldevicesinfo=[]
-            for i in open_dev:
+            for i in devdesc_arr:
                 deviceinfo={}
                 for j in i.items():
                     if j[0] != 'csvfile':
@@ -58,23 +56,27 @@ async def nats_reply_cb(msg):
                 alldevicesinfo.append(deviceinfo)
 
             res = json_ser(alldevicesinfo)
-        case 'headline':
-            res = json_ser(kam603.headline())
+        case message if re.match('^headline.*',message):
+            p=re.compile("^\S+\s*(.*)")
+            m=(p.match(message))
+            if m.group(1) == '':
+                res=b"ERROR: Missing device type"
+            else:
+                res=gendev.headline(m.group(1))
         case message if re.match('^cleardelta.*',message):
             p=re.compile("^\S+\s*(.*)")
             m=p.match(message)
             if m.group(1) == '':
                 res=b"ERROR: Missing device name"
             else:
-                device=devdesc_get(m.group(1))
-                if device == None:
+                devdesc=devdesc_get(m.group(1))
+                if devdesc == None:
                     res=b"ERROR: Non existing device name"
                 else:
-                    await kam603.clear_delta(device)
+                    await gendev.clear_delta(devdesc)
                     res=b"OK"
         case _:
             res = b"Unknown message received"
-            print("Unknown: {}".format(message))
             
     await msg.respond(res)
 
@@ -94,16 +96,16 @@ async def main():
     sub = await nc.subscribe(easyyaml.get('nats','request'), cb=nats_reply_cb)
 
     # Init serial M-bus port
-    kam603.init(easyyaml.get('mbus','tty'),easyyaml.get('mbus','baud'))
+    gendev.init(easyyaml.get('mbus','tty'),easyyaml.get('mbus','baud'))
 
     devices=easyyaml.get('mbus','devices')
     for dev in devices:
-        open_dev.append(await kam603.open(dev['address'],dev['name']))
+        devdesc_arr.append(await gendev.open(dev['address'],dev['name'],dev['type']))
 
     mbuscount=0
     while True:
-        for devdesc in open_dev:
-            root = await kam603.read(devdesc)
+        for devdesc in devdesc_arr:
+            root = await gendev.read(devdesc)
             if root == None:
                 await nc.publish("{}{}{}".format(easyyaml.get('nats','mbusdevice'),devdesc['device_name'], '.error'), b"Error reading from device")
                 continue
@@ -118,7 +120,10 @@ async def main():
         # Dont sleep when in debug mode as MQTT subscriber (Wait for MQTT publisher instead)
         if easyyaml.get('debug','mqttsub') != True:
             await asyncio.sleep(easyyaml.get('mbus','pollinterval'))
+<<<<<<< HEAD
+=======
 
+>>>>>>> 948decc41a8f9e5337550a146422a3db5e87b2d3
 
 
 if __name__ == '__main__':

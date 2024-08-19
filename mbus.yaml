@@ -4,6 +4,14 @@
 #  - mbustb   - M-Bus ThingsBoard daemon - Communicates with IoT ThingsBoard using MQTT
 #  - mbusweb  - Flask WEB-server daemon - showing basic information on M-Bus devices
 
+<<<<<<< HEAD
+debug:
+  mqttpub: False
+  mqttsub: False
+  mqttbroker: "93.166.84.21"
+  mqttsubject: "mbus/debug/raw"
+=======
+>>>>>>> 948decc41a8f9e5337550a146422a3db5e87b2d3
 
 #NATS - common setup between daemons 
 nats:
@@ -44,11 +52,18 @@ mbus:
   tty: "/dev/ttyS4"
   baud: 9600
   pollinterval: 60
-  csvdir: "/var/www/data/kam603/" # CSV files directory
+  csvdir: "/var/www/data/" # CSV files directory
   devices:
+<<<<<<< HEAD
+    - {name: "stand1", address: 68, type: "kam603"}
+    - {name: "stand2", address: 69, type: "gav340"}
+    #- {group: "stand1", name: "heat 1", address: 70}
+    #- {group: "stand1", name: "power 1", address: 71}
+=======
     - {name: "stand1", address: 68}
     - {name: "stand2", address: 69}
     #- {vendor: 'KAM', model: 53, name: "stand3", address: 70}
+>>>>>>> 948decc41a8f9e5337550a146422a3db5e87b2d3
     #- {name: "stand4", address: 71}
     
 # Small 3.3 volts 2x20 characters LCD display
@@ -68,6 +83,18 @@ display:
 web:
   csvserver: "10.128.201.14"
 
+<<<<<<< HEAD
+meters:
+  KAM: 
+    man: "Kamstrup"
+    dev:
+      - {version: 53, name: "Multical 603", python: "kam603"}
+#  GAV: "Carlo Gavazzi"
+  GAV:
+    - {version: 198, name: "EM330-DIN", python: "gav340"}
+    - {version: 199, name: "EM340-DIN", python: "gav340"}
+
+=======
 # Debug section
 # Used while developing htmbus system while in production
 # htmbus system 1: Production device reading from M-Bus devices 
@@ -80,3 +107,4 @@ debug:
   mqttsub: False                # Subscribe for M-Bus metrics from MQTT-broker instead of reading M-Bus 
   mqttbroker: "93.166.84.21"    
   mqttsubject: "mbus/debug/raw"
+>>>>>>> 948decc41a8f9e5337550a146422a3db5e87b2d3

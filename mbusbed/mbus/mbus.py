@@ -78,7 +78,11 @@ async def read_raw(devdesc):
     return stdout
 
 # Only for debugging/development purposes
+<<<<<<< HEAD
+async def debug_mqtt_pub(data):
+=======
 async def debug_mqtt_pub(devdesc,data):
+>>>>>>> 948decc41a8f9e5337550a146422a3db5e87b2d3
     broker = easyyaml.get('debug','mqttbroker')
     subject = "{}/{}".format(easyyaml.get('debug','mqttsubject'),devdesc['address'])
 
@@ -129,6 +133,12 @@ async def read(devdesc):
         await debug_mqtt_pub(devdesc,rawdata)
     if rawdata == None:
         return None
+<<<<<<< HEAD
+    if easyyaml.get('debug','mqttpub') == True:
+        # Only for debugging/development purposes
+        await debug_mqtt_pub(rawdata)
+=======
+>>>>>>> 948decc41a8f9e5337550a146422a3db5e87b2d3
     root = ET.fromstring(rawdata)
     return root
 
