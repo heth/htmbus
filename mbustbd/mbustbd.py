@@ -58,7 +58,7 @@ async def nats_sub_handler(msg):
             mqttclient.publish(easyyaml.get('mqtt','gatewaytopic'),json_data)
     except:
         mqttclient._disconnected = asyncio.Future()
-        log.warning('Connection lost')
+        log.warn('Connection lost')
 
 
 #### MQTT implementation

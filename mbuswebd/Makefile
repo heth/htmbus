@@ -46,12 +46,12 @@ install: $(SERVICE).service
 	fi
 	@if ! grep "M-Bus" $(NGINX_CONF); then\
 		echo "Reconfiguring nginx";\
-		sudo apt install libnginx-mod-http-fancyindex;\
+		sudo apt -y install libnginx-mod-http-fancyindex;\
 		sudo cp $(NGINX_CONF) $(NGINX_CONF_BU);\
 		sudo systemctl stop nginx;\
 		sudo cp ./nginx.conf $(NGINX_CONF);\
 		sudo systemctl start nginx;\
-		sudo rm $(NGINX_SITES_ENABLED)/*
+		sudo rm $(NGINX_SITES_ENABLED)/*;\
 	fi
 
 

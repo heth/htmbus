@@ -120,11 +120,6 @@ async def main():
         # Dont sleep when in debug mode as MQTT subscriber (Wait for MQTT publisher instead)
         if easyyaml.get('debug','mqttsub') != True:
             await asyncio.sleep(easyyaml.get('mbus','pollinterval'))
-<<<<<<< HEAD
-=======
-
->>>>>>> 948decc41a8f9e5337550a146422a3db5e87b2d3
-
 
 if __name__ == '__main__':
     asyncio.run(main())
