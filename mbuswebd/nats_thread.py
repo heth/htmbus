@@ -45,7 +45,7 @@ async def nats_start(subject):
     natglo['headline'] = "ERROR"
     while True:
         try:
-            natglo['headline'] = await natglo['client'].request(easyyaml.get('nats','request'),b"headline") # Wait until ready
+            natglo['headline'] = await natglo['client'].request(easyyaml.get('nats','request'),b"headline kam603") # Wait until ready
             #natglo['headline'] = await natglo['client'].request("futtog.vogn",b"headline") # Wait until ready
             print("Nats headline er {}".format(natglo['headline']))
             break
