@@ -1,0 +1,27 @@
+#!/usr/bin/bash
+SERVICES="mbusbed mbustbd mbuswebd displayd"
+USER=debian
+
+perror() {
+        printf "ERROR: %s\n" "$*" >&2
+}
+if [ $EUID -ne 0 ]
+then
+        echo -e "ERROR: You need root credentials to run this script"
+        exit
+fi
+
+for SERVICE in $SERVICES
+do
+	cd $SERVICE
+	echo "Uninstalling  $SERVICE - running make install"
+
+	if ! make uninstall
+	then
+		perror "make uninstall failed on service $SERVICE"
+		exit 1
+	fi
+    cd ..
+done
+echo "All services uninstalled"
+
