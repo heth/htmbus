@@ -60,8 +60,8 @@ async def read_raw(devdesc):
 
 def headline(device_type):
     if not device_type in wrap.keys():
-        return('') # Non exixting device_type
-    return(wrap[devdesc['device_type']].headline(devdesc))
+        return('ERROR: Non existing device type') # Non exixting device_type
+    return(wrap[device_type].headline())
 
 async def clear_delta(devdesc):
     await wrap[devdesc['device_type']].clear_delta(devdesc)

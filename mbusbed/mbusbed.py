@@ -62,7 +62,7 @@ async def nats_reply_cb(msg):
             if m.group(1) == '':
                 res=b"ERROR: Missing device type"
             else:
-                res=gendev.headline(m.group(1))
+                res=json_ser(gendev.headline(m.group(1)))
         case message if re.match('^cleardelta.*',message):
             p=re.compile("^\S+\s*(.*)")
             m=p.match(message)
