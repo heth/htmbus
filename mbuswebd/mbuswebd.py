@@ -33,8 +33,6 @@ async_mode=None
 
 app = Flask(__name__, instance_relative_config=True)  # Relative_config looks in templates dir
 socketio = SocketIO(app,async_mode="threading")
-#socketio = SocketIO(app,async_mode=async_mode)
-#AutoIndex(app, browse_root="/var/www/data/kam603")
 nav = Nav(app)
 Bootstrap(app)
 img()
@@ -73,10 +71,10 @@ def scroll_worker():
         print("-----------------------> Count: {}                                       ".format(count),end='\r',flush=True)
 
 
-@app.route("/ai")
-def ai():
-    AutoIndex(app, browse_root="/var/www/data/kam603")
-    return render_template('ai.html')
+#@app.route("/ai")
+#def ai():
+#    AutoIndex(app, browse_root="/var/www/data/kam603")
+#    return render_template('ai.html')
 
 @app.route("/navpage")
 def navpage():
@@ -90,7 +88,7 @@ def index():
 
 @app.route("/statusdevices")
 async def statusdevices():
-    devstat = await nats_thread.devicesget()
+    devstat = await nats_thread.devices_get()
     print("Devstat  = {}".format(devstat))
     # Example:  [{"address": "68", "timestamp": 1722343820, "count": 826, "error": 0, "device_name": "stand1", "delta": {"\u0394Power": 0, "\u0394Vol flow": 0.0, "\u0394Energy": 1}, "manufacturer": "KAM", "version": "53", "name": "Kamstrup Multical 603"}
     return render_template('devices.html',status=devstat)

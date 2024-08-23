@@ -19,7 +19,6 @@ natglo={}  # nats globals
 def init():
     global natglo
     natglo['loop']=asyncio.new_event_loop()
-    #loop=asyncio.new_event_loop()
     natglo['thread']=threading.Thread(target=start_background_loop, args=(natglo['loop'],), daemon=True)
     natglo['thread'].start()
     task = asyncio.run_coroutine_threadsafe(nats_thread(), natglo['loop'])
@@ -28,9 +27,7 @@ def init():
 # nats_start() starts nats - called from thread initialized in init()
 async def nats_start(subject):
     global natglo
-    #global natsclient
-    #global natslock
-    #natglo['lient'] = await nats.connect(easyyaml.get('nats','connect_str') or "nats://127.0.0.1:4222")
+
     print("Natsstart",flush=True)
     print("Natsstart on subject: {}".format(subject))
     try:
@@ -40,45 +37,34 @@ async def nats_start(subject):
         print("Natsstart 3",flush=True)
     except Exception as e:
         print("Something went wrong: {}".format(e))
-        #natglo['headline'] = await natglo['client'].request(easyyaml('nats','request'),bytes("headline","utf8")) # Wait until ready
-        #natglo['headline'] = await natglo['client'].request(easyyaml.get('nats','request'),bytes("headline","utf8")) # Wait until ready
-    natglo['headline'] = "ERROR"
+
+    natglo['headline'] = "ERROR" # Default value
     while True:
         try:
             natglo['headline'] = await natglo['client'].request(easyyaml.get('nats','request'),b"headline kam603") # Wait until ready
-            #natglo['headline'] = await natglo['client'].request("futtog.vogn",b"headline") # Wait until ready
             print("Nats headline er {}".format(natglo['headline']))
             break
         except:
             pass
     natglo['headline'] = easyjson.deser(natglo['headline'].data)
-    #print("headline = {}".format(natglo['headline'].data))
     print("headline = {}".format(natglo['headline']))
     print("NATS started on subject: {}".format(subject))
-    #natglo['lock'] = threading.Lock()
     natglo['lock'].acquire()
 
 async def nats_sub_handler(msg):
-    #print("NATS subhandler engaged")
     subtopics=re.split("\.",msg.subject)
     if subtopics[3] == easyyaml.get('nats','subtopic_data'):
         json_data=easyjson.deser(msg.data)
         dataput(json_data)
         return()
     if subtopics[3] == easyyaml.get('nats','subtopic_error'):
-        #print(str(msg.data, encoding='utf-8'))
         return()
 
 async def nats_thread():
-    #global devstat
     print("Thread running")
     await nats_start(easyyaml.get('nats','devicetopic'))
     print("NATS running")
     while True:
-        #try:
-        #    devstat = await natglo['client'].request(easyyaml.get('nats','request'),b"devices")
-        #except:
-        #    pass
         await asyncio.sleep(5)
 
 # No queueing of data as latest is sufficient
@@ -98,7 +84,7 @@ def headlineget():
     return(natglo['headline'])
 
 #Giver ikke mening at kalde fra main-thread. Anden kontekst
-async def devicesget():
+async def devices_get():
     try:
         print("This is first in devices data: ",flush=True)
         devstat = await natglo['client'].request(easyyaml.get('nats','request'),b"devices")
@@ -106,10 +92,6 @@ async def devicesget():
         return(easyjson.deser(devstat.data))
     except:
         pass
-
-def devicesget2():
-    print(devstat,flush=True)
-    return(easyjson.deser(devstat.data))
 
 def start_background_loop(loop: asyncio.AbstractEventLoop) -> None:
     asyncio.set_event_loop(loop)

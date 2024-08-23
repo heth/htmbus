@@ -4,7 +4,6 @@ After=network.target
 Before=nginx.service
 StartLimitIntervalSec=60
 StartLimitBurst=12
-RestartSec=5
 
 
 [Service]
@@ -13,6 +12,7 @@ Type=simple
 User=mbus
 Group=mbus
 Restart=on-failure
+RestartSec=5
 
 
 [Install]

@@ -44,7 +44,7 @@ mbus:
   tty: "/dev/ttyS4"
   baud: 9600
   pollinterval: 60
-  csvdir: "/var/www/data/" # CSV files directory
+  csvdir: "/var/www/mbus/csv/" # CSV files directory
   devices:
     - {name: "stand1", address: 68, type: "kam603"}
     - {name: "stand2", address: 69, type: "gav340"}

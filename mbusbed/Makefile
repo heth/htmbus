@@ -3,7 +3,7 @@ PYTHON = $(VENV)/bin/python3
 PIP = $(VENV)/bin/pip
 SERVICE=mbusbed
 SYSTEMDDIR=/etc/systemd/system/
-CSVDIR=/var/www/data/
+CSVDIR=/var/www/mbus/csv
 
 
 
