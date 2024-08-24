@@ -40,6 +40,8 @@ branding = img(src="static/MBusLogo240.jpg", height='20')
 nav.register_element('mbus_navbar', Navbar(branding, #'Main menu',
                                            # Text('MAIN MENU'),
                                            View('Home page', 'index'),
+                                           View('Status', 'status'),
+                                           View('Status devices', 'statusdevices'),
                                            View('Stand 1', 'stand1'),
                                            View('Stand 2', 'stand2'),
                                            View('Alle stande', 'alldevices'),
@@ -79,6 +81,10 @@ def scroll_worker():
 @app.route("/navpage")
 def navpage():
     return render_template('navpage.html')
+
+@app.route("/status")
+def status():
+    return render_template('status1.html')
 
 @app.route("/")
 def index():
