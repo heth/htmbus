@@ -12,9 +12,9 @@ htmbus is the measuring and visualization of a project for an energy measurement
 ![Logical topology view](/docs/pics/htmbus%20logical%20topology.png)
 
 ## Hardware installation
-See: [Harware installation](https://mars.merhot.dk/w/index.php/M-bus_Linux#Hardware_configuration) (Dont install anyting on your Beaglebon black - see "software installation"
+See: [Hardware installation](https://mars.merhot.dk/w/index.php/M-bus_Linux#Hardware_configuration) (Dont install anyting on your Beaglebon black - see "software installation"
 ## Software installation
-### Installaing new debian image on micro-SD card
+### Installing new debian image on micro-SD card
 1. Remove micro-SD card (If any)
 2. Boot from buildin image on on-board flash (mmcblk1)
 3. insert micro-SD card (Minimum 8 GB) 
