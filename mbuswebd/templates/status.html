@@ -1,0 +1,61 @@
+{% extends 'extend.html' %}
+{% block content %}
+<h1>M-Bus status Page</h1>
+<p>
+M-Bus device gateway V1.0 beta
+</p>
+<head>
+ <style>
+
+    .fixTableHead {
+      overflow-y: auto;
+      height: 90vh; /* 700px; */
+    }
+    .fixTableHead thead th {
+      position: sticky;
+      /* height: 3vh; */
+      top: 0px;  /* chrome 35px, edge 0px, */
+      /* top: 35px; */
+    }
+    /* table {
+      border-collapse: collapse;
+      width: 100%;
+    }*/
+    th, td {
+      padding: 2px 5px;
+      border: 1px solid #529432;
+      /* position: sticky;
+      top: 0;*/
+    }
+    th {
+      background: #34cceb; //#347deb; //#ABDD93;
+    }
+    html, body{
+        position: relative; /*top;*/
+        max-width:75%;
+        overflow-y:hidden;
+    }
+  </style>
+</head>
+
+<div class="fixTableHead">
+<table class="table table-striped">
+    <thead class="th">
+    <tr>
+      {% for field in headline %}
+        <th>{{field}}</th>
+      {% endfor %}
+    </tr>
+	{% for device in devinfo %}
+	<tr>
+	  {% for data in device %}
+	  <td>{{ data }}</td>
+	  {% endfor %}
+	</tr>
+	{% endfor %}
+</table>
+</div>
+
+{% endblock %}
+
+

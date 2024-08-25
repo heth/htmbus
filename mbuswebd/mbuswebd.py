@@ -20,9 +20,11 @@ import time
 import os
 from htutil import easyyaml
 from htutil import easyjson
+from htutil import log
 import nats_thread
 #import threading
 import gevent
+from datetime import datetime
 
 # Init is here when running unicorn - __main__ never runs
 yamlfile="/etc/mbus/mbus.yaml"
@@ -55,6 +57,10 @@ def scroll_worker():
 
     while True:
         rawdata = nats_thread.dataget()
+        if rawdata == None:
+            log.error("scroll_worker: nats_thread.dataget() failed")
+            time.sleep(5)
+            continue
         #print("rawdata is {}".format(rawdata))
         
         # Field 2 in entries contain data
@@ -83,8 +89,27 @@ def navpage():
     return render_template('navpage.html')
 
 @app.route("/status")
-def status():
-    return render_template('status1.html')
+async def status():
+    devfields = ['device_name','device_type','address','timestamp','count','error']
+    headline=['Name','Type','M-Bus Address','Last seen','Successful reads','Failed reads']
+    devinfo=[]
+    devstatus = await nats_thread.devices_get()
+    if devstatus == None:
+        log.error("Route /status: nats_thread.dataget() failed")
+    else:
+        for dev in devstatus:
+            if dev['timestamp'] == None:
+                dev['timestamp'] = "Never seen" 
+            else:
+                localtime = datetime.fromtimestamp(dev['timestamp'])
+                dev['timestamp'] = localtime.strftime("%d/%m/%Y %H:%M:%S")
+            info=[]
+            for field in devfields:
+                info.append(dev[field])
+            devinfo.append(info)
+
+    print("device: {}".format(devinfo))
+    return render_template('status.html', headline=headline, devinfo=devinfo)
 
 @app.route("/")
 def index():
@@ -140,6 +165,7 @@ async def alldevices():
 
 def main():
     easyyaml.init(yamlfile)
+    log.init(level=3)
     # Start asyncio event loop in new thread
     # See: https://gist.github.com/dmfigol/3e7d5b84a16d076df02baa9f53271058?permalink_comment_id=3895920
     nats_thread.init()
@@ -150,6 +176,7 @@ def main():
 def wsgi_start():
     print("WSGI-Start")
     easyyaml.init(yamlfile)
+    log.init(level=3)
     nats_thread.init()
 
 if __name__ == '__main__':

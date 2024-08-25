@@ -15,6 +15,8 @@ natglo={}  # nats globals
 #natslock=None   # threading.Lock() between asynio nats and Flask
 #natsdata=None   # Data protected by natslock
 
+
+# --> All code below is run by main-thread
 # init() is run from main thread() which starts a new thread with thread_start()
 def init():
     global natglo
@@ -23,12 +25,49 @@ def init():
     natglo['thread'].start()
     task = asyncio.run_coroutine_threadsafe(nats_thread(), natglo['loop'])
     natglo['lock'] = threading.Lock()
+    print("nats_init done")
+
+async def devices_get():
+    sub= await nats.connect(easyyaml.get('nats','connect_str') or "nats://127.0.0.1:4222")
+    try:
+        devstat = await sub.request(easyyaml.get('nats','request'),b"devices")
+    except Exception as e:
+        print("nats devices_get() - Something went wrong: {}".format(e))
+        return(None)
+    print("Devstat.data = {}".format(devstat.data))
+    await sub.close()
+    if devstat.data == None:
+        print("To bad")
+        return(None)
+    return(easyjson.deser(devstat.data))
+    
+def headlineget():
+    return(natglo['headline'])
+
+# No queueing of data as latest is sufficient
+# natglo['lock'] is used between main-thread and nats-thread to synchronize
+natsdata=None # global natsdata is used to deliver data from nats-thread to main-thread
+def dataget():
+    print("Getting data thread ID is {}".format(threading.get_native_id()),flush=True)
+    natglo['lock'].acquire()
+    print("Got the data thread ID is {}".format(threading.get_native_id()),flush=True)
+    data=natsdata
+    return(data)
+
+# --> All code below is run by nats_thread created by init
+
+def dataput(data):
+    global natsdata
+    print("Putting data thread ID is {} native is {}".format(threading.get_ident(), threading.get_native_id()),flush=True)
+    natsdata=data
+    if natglo['lock'].locked() == True:
+        natglo['lock'].release()
 
 # nats_start() starts nats - called from thread initialized in init()
 async def nats_start(subject):
     global natglo
 
-    print("Natsstart",flush=True)
+    print("Natsstart thread ID is {} native is {}".format(threading.get_ident(), threading.get_native_id()),flush=True)
     print("Natsstart on subject: {}".format(subject))
     try:
         natglo['client'] = await nats.connect(easyyaml.get('nats','connect_str') or "nats://127.0.0.1:4222")
@@ -65,33 +104,9 @@ async def nats_thread():
     await nats_start(easyyaml.get('nats','devicetopic'))
     print("NATS running")
     while True:
-        await asyncio.sleep(5)
+        await asyncio.sleep(60)
 
-# No queueing of data as latest is sufficient
-natsdata=None
-def dataget():
-    natglo['lock'].acquire()
-    data=natsdata
-    return(data)
 
-def dataput(data):
-    global natsdata
-    natsdata=data
-    if natglo['lock'].locked() == True:
-        natglo['lock'].release()
-
-def headlineget():
-    return(natglo['headline'])
-
-#Giver ikke mening at kalde fra main-thread. Anden kontekst
-async def devices_get():
-    try:
-        print("This is first in devices data: ",flush=True)
-        devstat = await natglo['client'].request(easyyaml.get('nats','request'),b"devices")
-        print("This is devices data: {}".format(devstat.data),flush=True)
-        return(easyjson.deser(devstat.data))
-    except:
-        pass
 
 def start_background_loop(loop: asyncio.AbstractEventLoop) -> None:
     asyncio.set_event_loop(loop)

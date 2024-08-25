@@ -31,7 +31,7 @@ mqtt:
   brokerip: "10.128.201.15"
   brokerport: "1883"
   #username: "heth"
-  #password: "l8heise"
+  #password: ""
   #clientid: "vvs2"
   username: "sohp"
   password: "VVS2024!"
