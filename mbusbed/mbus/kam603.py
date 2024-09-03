@@ -104,12 +104,15 @@ async def read(devdesc):
         return (None)
     slave = mbus.slave_information(devdesc,root)
     if slave['Manufacturer'] == 'KAM':
+        devdesc['manufacturer'] = 'Kamstrup'
         if slave['Version'] == '53':  # Multical 603
+            devdesc['model'] = 'Multical 603'
+            devdesc['serial'] = slave['Id']
             data = parse(devdesc, root)
             csvdata=''
             for i in data:
                 if i[1] == 'float':
-                    csvdata=csvdata + locale.format_string('%.2f',i[2]) + ';'
+                    csvdata=csvdata + locale.format_string('%.02f',i[2]) + ';'
                 else:
                     csvdata=csvdata + "{};".format(i[2])
             csvdata=csvdata.rstrip(';') # Remove trailing ';'

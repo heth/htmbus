@@ -1,186 +1,162 @@
-# See https://flask.palletsprojects.com/en/2.3.x/quickstart/#a-minimal-application
-# Run: flask --debug --app hello2 run --host=0.0.0.0
-# HACK om python 3.10
-# Change line 49 in /home/heth/flask/nav2/venv/lib/python3.10/site-packages/flask_nav/__init__.py to
-#    class ElementRegistry(collections.abc.MutableMapping):
-# Flask_nav - See: https://www.youtube.com/watch?v=EJwGV1gjVkY
+import quart_flask_patch
 import asyncio
-from flask import Flask, render_template, request
-from flask import send_from_directory
-from flask_socketio import SocketIO, emit
-from queue import Queue
+import socketio
+import threading
+from quart import Quart, render_template, websocket
+from quart_cors import cors
+import uvicorn
+import nats
 from flask_nav import Nav
 from flask_nav.elements import Navbar, View, Subgroup, Link, Text, Separator
 from flask_bootstrap import Bootstrap
-from flask_autoindex import AutoIndex
-#from werkzeug.middleware.proxy_fix import ProxyFix
 from dominate.tags import img
-import re
-import time
-import os
+from datetime import datetime
+import views
+
+#Local modules
 from htutil import easyyaml
 from htutil import easyjson
 from htutil import log
-import nats_thread
-#import threading
-import gevent
-from datetime import datetime
+import htnats
 
-# Init is here when running unicorn - __main__ never runs
-yamlfile="/etc/mbus/mbus.yaml"
-number_of_threads = 1
-threads=0
-work_queue = Queue()
-async_mode=None
-
-app = Flask(__name__, instance_relative_config=True)  # Relative_config looks in templates dir
-socketio = SocketIO(app,async_mode="threading")
-nav = Nav(app)
-Bootstrap(app)
-img()
+# Init and globals
+yamlfile="/etc/mbus/mbus.yaml"  # Generel configuration
 branding = img(src="static/MBusLogo240.jpg", height='20')
-nav.register_element('mbus_navbar', Navbar(branding, #'Main menu',
-                                           # Text('MAIN MENU'),
+CORS_ALLOWED_ORIGINS = "*"
+
+
+
+class QuartSIO:
+    def __init__(self) -> None:
+        self.sio = socketio.AsyncServer(
+            async_mode="asgi", cors_allowed_origins=CORS_ALLOWED_ORIGINS
+        )
+        self._quart_app = Quart(__name__)
+        self._quart_app = cors(self._quart_app, allow_origin=CORS_ALLOWED_ORIGINS)
+        self._sio_app = socketio.ASGIApp(self.sio, self._quart_app)
+        self.route = self._quart_app.route
+        self.add_url_rule = self._quart_app.add_url_rule
+        self.on = self.sio.on
+        self.emit = self.sio.emit
+        self.start_background_task = self.sio.start_background_task
+
+    async def _run(self, host: str, port: int):
+        try:
+            print("STARTUP")
+            easyyaml.init(yamlfile)
+            log.init(level=3)
+            await htnats.init()
+            views.init(self._quart_app)
+            nav=Nav(self._quart_app)
+            nav.register_element('mbus_navbar', Navbar(branding, #'Mercantec',
                                            View('Home page', 'index'),
                                            View('Status', 'status'),
-                                           View('Status devices', 'statusdevices'),
+                                           #View('Status devices', 'statusdevices'),
                                            View('Stand 1', 'stand1'),
                                            View('Stand 2', 'stand2'),
-                                           View('Alle stande', 'alldevices'),
-#                                           View('Status stande', 'statusdevices'),
+                                           #View('Alle stande', 'alldevices'),
                                            ))
+            Bootstrap(self._quart_app)
+            img()
+            self.sio.start_background_task(scroll_worker)
+            uvconfig = uvicorn.Config(self._sio_app, host=host, port=port)
+            server = uvicorn.Server(config=uvconfig)
+
+            await server.serve()
+        except KeyboardInterrupt:
+            print("Shutting down")
+        finally:
+            print("Bye!")
+
+    def run(self, host: str, port: int):
+        asyncio.run(self._run(host, port))
 
 
-def scroll_worker():
-    print("scroll_worker starts")
+app = QuartSIO()
+#app.add_url_rule('/stand2', view_func=views.stand2)
+
+
+async def scroll_worker():
+# Socketio see: https://github.com/miguelgrinberg/python-socketio/discussions/777
+    print("scroll_worker starting")
     count=0
 
     while True:
-        rawdata = nats_thread.dataget()
+        print("scrool_worker - thread ID is {}".format(threading.get_native_id()),flush=True)
+        rawdata = await htnats.dataget()
         if rawdata == None:
             log.error("scroll_worker: nats_thread.dataget() failed")
             time.sleep(5)
             continue
-        #print("rawdata is {}".format(rawdata))
-        
-        # Field 2 in entries contain data
         data=[]
         for i in rawdata:
             data.append(i[2])
 
-        socketio.emit('kam603updateall', {'data': data})
+        await app.emit('kam603updateall', {'data': data})
 
         count = count + 1
         if data[2] == 'stand1':
-            socketio.emit('kam603updatestand1', {'data': data})
+            await app.emit('kam603updatestand1', {'data': data})
         if data[2] == 'stand2':
-            socketio.emit('kam603updatestand2', {'data': data})
+            await app.emit('kam603updatestand2', {'data': data})
 
-        print("-----------------------> Count: {}                                       ".format(count),end='\r',flush=True)
+        print("-----------------------> Count: {}                                       ".format(count),flush=True)
 
-
-#@app.route("/ai")
-#def ai():
-#    AutoIndex(app, browse_root="/var/www/data/kam603")
-#    return render_template('ai.html')
-
-@app.route("/navpage")
-def navpage():
-    return render_template('navpage.html')
+@app.route("/")
+async def index():
+    broker=easyyaml.get('mqtt','brokerip') # Broker contains ThingsBoard
+    csvserver=easyyaml.get('web','csvserver') # Broker contains ThingsBoard
+    return await render_template('index.html',broker=broker, csvserver=csvserver)
 
 @app.route("/status")
 async def status():
-    devfields = ['device_name','device_type','address','timestamp','count','error']
-    headline=['Name','Type','M-Bus Address','Last seen','Successful reads','Failed reads']
+    #devfields = ['device_name','device_type','address','timestamp','count','error']
+    devfields = ['device_name','manufacturer','model','serial','address','timestamp','count','error']
+    headline=['Name','Manufacturer','Model','Serial','M-Bus Address','Last seen','Successful reads','Failed reads']
+    #headline=['Name','Type','M-Bus Address','Last seen','Successful reads','Failed reads']
     devinfo=[]
-    devstatus = await nats_thread.devices_get()
+    devstatus = await htnats.devices_get()
     if devstatus == None:
         log.error("Route /status: nats_thread.dataget() failed")
     else:
         for dev in devstatus:
             if dev['timestamp'] == None:
-                dev['timestamp'] = "Never seen" 
+                dev['timestamp'] = "Never seen"
             else:
                 localtime = datetime.fromtimestamp(dev['timestamp'])
                 dev['timestamp'] = localtime.strftime("%d/%m/%Y %H:%M:%S")
             info=[]
             for field in devfields:
+                if dev[field] == None:   # If device never seen
+                    dev[field] = '?'
                 info.append(dev[field])
             devinfo.append(info)
 
     print("device: {}".format(devinfo))
-    return render_template('status.html', headline=headline, devinfo=devinfo)
+    return await render_template('status.html', headline=headline, devinfo=devinfo)
 
-@app.route("/")
-def index():
-    broker=easyyaml.get('mqtt','brokerip') # Broker contains ThingsBoard
-    csvserver=easyyaml.get('web','csvserver') # Broker contains ThingsBoard
-    return render_template('index.html',broker=broker, csvserver=csvserver)
+@app.on("connect")
+async def on_connect(sid, environ):
+    print("Connected sid = {}".format(sid))
 
-@app.route("/statusdevices")
-async def statusdevices():
-    devstat = await nats_thread.devices_get()
-    print("Devstat  = {}".format(devstat))
-    # Example:  [{"address": "68", "timestamp": 1722343820, "count": 826, "error": 0, "device_name": "stand1", "delta": {"\u0394Power": 0, "\u0394Vol flow": 0.0, "\u0394Energy": 1}, "manufacturer": "KAM", "version": "53", "name": "Kamstrup Multical 603"}
-    return render_template('devices.html',status=devstat)
+@app.on("disconnect")
+async def on_disconnect(sid):
+    print("Disconnected sid = {}".format(sid))
+
 
 @app.route("/stand1")
-def stand1():
-    headline = nats_thread.headlineget() 
+async def stand1():
+    headline = htnats.headlineget()
     headings = []
     for i in headline:
         headings.append(i[0])
-    return render_template('stand1.html',headings=headings)
+    return await render_template('stand1.html',headings=headings)
 
-@app.route("/stand2")
-def stand2():
-    headline = nats_thread.headlineget() 
-    headings = []
-    for i in headline:
-        headings.append(i[0])
-    return render_template('stand2.html',headings=headings)
+@app.on("*")
+async def on_message(message, sid, *args):
+    print("Message:", message, args)
+    await app.emit("echo", message)
 
-@socketio.on('connect')
-def kam603_connect():
-    global threads
-    ipaddr = request.remote_addr
-    server = request.server
-    print("IPADDR: " + str(ipaddr))
-    print("SERVER: " + str(server[0]) + " All: " + str(server))
-    #emit('after connect', {'data': 'Lets dance'})
-    if threads < number_of_threads:
-        threads = threads + 1
-        socketio.start_background_task(scroll_worker)
-
-
-#@app.route("/alldevices/<name>")
-@app.route("/alldevices")
-async def alldevices():
-    headline = nats_thread.headlineget() 
-    headings = []
-    for i in headline:
-        headings.append(i[0])
-    return render_template('alldevices.html',headings=headings)
-
-
-def main():
-    easyyaml.init(yamlfile)
-    log.init(level=3)
-    # Start asyncio event loop in new thread
-    # See: https://gist.github.com/dmfigol/3e7d5b84a16d076df02baa9f53271058?permalink_comment_id=3895920
-    nats_thread.init()
-    #app.run(debug=False,host="0.0.0.0")
-    print("Socket")
-    socketio.run(app)
-    
-def wsgi_start():
-    print("WSGI-Start")
-    easyyaml.init(yamlfile)
-    log.init(level=3)
-    nats_thread.init()
-
-if __name__ == '__main__':
-    asyncio.run(main())  # Flask running in debug mode
-else:
-    wsgi_start() # When using wsgi by example gunicorn
-
+if __name__ == "__main__":
+    #app.run("localhost", 5000)
+    app.run("0.0.0.0", 5000)

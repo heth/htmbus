@@ -10,7 +10,6 @@
     let siv = document.querySelector('.sc');
     siv.scrollIntoView({behavior: "smooth", block: "end", inline: "nearest"});
     let srv = "http://" + "{{ server }}" + ":{{port}}";
-    alert(srv)
     var socket = io.connect(srv);
 
     socket.on('kam603updatestand1',function(msg,cb) {

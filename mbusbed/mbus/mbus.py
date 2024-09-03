@@ -55,11 +55,15 @@ def open(address):
 
         devdesc is a dictionary needed for further access to device 
     """
-    devdesc = {
+# Set initial values
+    devdesc = { 
         'address': str(address),
         'timestamp': None,       # Last succesfull read
         'count':  0,             # Number of successfull reads
-        'error':  0              # Number of failed reads
+        'error':  0,             # Number of failed reads
+        'manufacturer': None,    # Fx. Kamstrup
+        'model': None,           # Fx. Multical 603
+        'serial': None           # Serial number of device
     }
     return (devdesc)
 
