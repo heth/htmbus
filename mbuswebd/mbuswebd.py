@@ -22,9 +22,8 @@ import htnats
 # Init and globals
 yamlfile="/etc/mbus/mbus.yaml"  # Generel configuration
 branding = img(src="static/MBusLogo240.jpg", height='20')
-CORS_ALLOWED_ORIGINS = "*"
-
-
+CORS_ALLOWED_ORIGINS = "*" #  Cross Origin Resource Sharing
+sio_users=0 # Socketio users
 
 class QuartSIO:
     def __init__(self) -> None:
@@ -137,11 +136,18 @@ async def status():
 
 @app.on("connect")
 async def on_connect(sid, environ):
-    print("Connected sid = {}".format(sid))
+    global sio_users
+    sio_users = sio_users + 1
+    print("Total sio_users {} New  connected sid = {}".format(sio_users,sid))
 
 @app.on("disconnect")
 async def on_disconnect(sid):
-    print("Disconnected sid = {}".format(sid))
+    global sio_users
+    if sio_users == 0:
+        print("ERROR: Negative number of sio_users - reached zero and one disconnected !!!")
+    else:
+        sio_users = sio_users - 1
+    print("Total sio_users {} Disconnected sid = {}".format(sio_users,sid))
 
 
 @app.route("/stand1")
