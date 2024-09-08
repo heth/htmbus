@@ -17,6 +17,7 @@ import views
 from htutil import easyyaml
 from htutil import easyjson
 from htutil import log
+from htutil import status
 import htnats
 
 # Init and globals
@@ -106,33 +107,6 @@ async def index():
     broker=easyyaml.get('mqtt','brokerip') # Broker contains ThingsBoard
     csvserver=easyyaml.get('web','csvserver') # Broker contains ThingsBoard
     return await render_template('index.html',broker=broker, csvserver=csvserver)
-
-@app.route("/status")
-async def status():
-    #devfields = ['device_name','device_type','address','timestamp','count','error']
-    devfields = ['device_name','manufacturer','model','serial','address','timestamp','count','error']
-    headline=['Name','Manufacturer','Model','Serial','M-Bus Address','Last seen','Successful reads','Failed reads']
-    #headline=['Name','Type','M-Bus Address','Last seen','Successful reads','Failed reads']
-    devinfo=[]
-    devstatus = await htnats.devices_get()
-    if devstatus == None:
-        log.error("Route /status: nats_thread.dataget() failed")
-    else:
-        for dev in devstatus:
-            if dev['timestamp'] == None:
-                dev['timestamp'] = "Never seen"
-            else:
-                localtime = datetime.fromtimestamp(dev['timestamp'])
-                dev['timestamp'] = localtime.strftime("%d/%m/%Y %H:%M:%S")
-            info=[]
-            for field in devfields:
-                if dev[field] == None:   # If device never seen
-                    dev[field] = '?'
-                info.append(dev[field])
-            devinfo.append(info)
-
-    print("device: {}".format(devinfo))
-    return await render_template('status.html', headline=headline, devinfo=devinfo)
 
 @app.on("connect")
 async def on_connect(sid, environ):

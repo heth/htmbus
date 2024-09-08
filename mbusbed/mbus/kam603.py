@@ -18,9 +18,6 @@ from htutil import log, csvlog, easyyaml
 kam603.py - M-Bus specific file for Kamstrup Multical 603 Meter-bus devices
 """
 
-#csvdir="/var/www/data/kam603/"
-#csvdir="/tmp/"
-
 # Tags searched in each DataRecord in this order.
 # mbustags = ('Function','StorageNumber','Unit','Value','Timestamp','Device','Tariff')
 
@@ -67,10 +64,7 @@ display_format = (
     Display_format('Value', 'Energy', 'int', 'KWh', None, None,True),
     Display_format('Delta', '\u0394Energy', 'int', 'KWh', None, None,True),
 )
-# Array of dictionaries
 
-
-#def init(devdesc):
 def init(tty,baudrate):
     locale.setlocale(locale.LC_ALL, 'da_DK.UTF-8') # For creating , as decimal point in float in CSV-file
     mbus.init(tty, baudrate)

@@ -9,6 +9,7 @@ from nats.errors import ConnectionClosedError, TimeoutError, NoServersError
 from mbus import GenericDevice as gendev
 from htutil import log
 from htutil import easyyaml
+from htutil import status
 '''
 Abbreviation Table:
 ===================
@@ -40,7 +41,7 @@ def devdesc_get(device_name):
 
 async def nats_reply_cb(msg):
     message = msg.data.decode()
-    res="Error condition"
+    res=b"Error condition"
 
     # Client request
     match message: 
@@ -92,6 +93,7 @@ async def main():
     systemd = sdnotify.SystemdNotifier()
     systemd.notify("Starting mbus handler daemon")
     nc = await nats.connect(easyyaml.get('nats','connect_str'))
+    await status.init("mbusbed",nc)
 
     sub = await nc.subscribe(easyyaml.get('nats','request'), cb=nats_reply_cb)
 

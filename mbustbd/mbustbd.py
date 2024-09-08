@@ -8,8 +8,12 @@ import time
 import re
 from htutil import log
 from htutil import easyyaml
+from htutil import status
 
 defaultyaml="/etc/mbus/mbus.yaml"
+
+mqttclient=None
+reconnects=0
 
 # Serialize object to json and encode as bytes
 def json_ser(object):
@@ -45,18 +49,23 @@ async def nats_start(subject):
     global natsclient
     natsclient = await nats.connect(easyyaml.get('nats','connect_str') or "nats://127.0.0.1:4222")
     sub = await natsclient.subscribe(subject, cb=nats_sub_handler)
+    await status.init("mbustbd",natsclient)
 
 def nats_stop():
     natsclient.close()
 
 async def nats_sub_handler(msg):
+    global reconnects
     try:
         subtopics=re.split("\.",msg.subject)
         if subtopics[3] == easyyaml.get('nats','subtopic_data'):
             json_data=parse_json(subtopics[2], msg.data)
             #print(json_data)
             mqttclient.publish(easyyaml.get('mqtt','gatewaytopic'),json_data)
+            status.message("OK","Connection attempts: {}".format(reconnects))
     except:
+        reconnects = reconnects + 1
+        status.message("Warning","Writing to Thingsboard MQTT failed (Retrying: {}): {}".format(reconnects,e))
         mqttclient._disconnected = asyncio.Future()
         log.warn('Connection lost')
 
@@ -65,9 +74,9 @@ async def nats_sub_handler(msg):
 #mqtttopicdevice="v1/devices/me/telemetry"
 #mqtttopicgateway="v1/gateway/telemetry"
 #mqttreqdevice="v1/devices/me/rpc/request/+"
-mqttclient=None
 async def mqtt_start():
     global mqttclient
+    global reconnects
     try:
         mqttclient=gmqtt.Client(easyyaml.get('mqtt','clientid'))
         mqttclient.on_message=mqtt_message
@@ -85,15 +94,21 @@ async def mqtt_start():
             keepalive=easyyaml.get('mqtt','keepalive') or 300,
             port=easyyaml.get('mqtt','port') or 1883
         )
+        status.message("OK","Connection attempts: {}".format(reconnects))
         # subscribe moved to mqtt_connect - as reconnect re.subscribes if broker restartet
         #mqttclient.subscribe(easyyaml.get('mqtt','request'))
-    except:
+        return True
+    except Exception as e:
+        reconnects = reconnects + 1
+        status.message("Warning","Connection to Thingsboard MQTT failed (Retrying: {}): {}".format(reconnects,e))
         mqttclient._disconnected = asyncio.Future()
+        return False
         print('Connection failed; Reconnecting ')
         #log.warn('Connection failed; Reconnecting ')
 
 def mqtt_connect(client, flags, rc, properties):
     print('[CONNECTED {}]'.format(client._client_id))
+    status.message("OK","Connection attempts: {}".format(reconnects))
     #log.info('[CONNECTED {}]'.format(client._client_id))
     #for i in range(1000000):
     #    i=i+1-1
@@ -119,9 +134,14 @@ async def main():
     easyyaml.init(defaultyaml)
     log.init()
     await nats_start(easyyaml.get('nats','devicetopic'))
-    await mqtt_start()
-    while True:
+    #print("1: What's up doc?")
+    #await mqtt_start()
+    #print("2: What's up doc?")
+    while await mqtt_start() == False:
+        print("3: What's up doc?")
         await asyncio.sleep(10)
+    while True:
+        await asyncio.sleep(60)
 
 if __name__ == '__main__':
     asyncio.run(main())

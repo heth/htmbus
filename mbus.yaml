@@ -4,6 +4,18 @@
 #  - mbustb   - M-Bus ThingsBoard daemon - Communicates with IoT ThingsBoard using MQTT
 #  - mbusweb  - Flask WEB-server daemon - showing basic information on M-Bus devices
 
+debug:
+  mqttpub: False
+  mqttsub: True
+  mqttbroker: "93.166.84.21"
+  mqttsubject: "mbus/debug/raw"
+
+services:
+  identity:
+  - {service: "mbusbed",  realname: "M-Bus backend daemon"}
+  - {service: "mbustbd",  realname: "M-Bus Thingsboard daemon"}
+  - {service: "mbuswebd", realname: "M-Bus WEB daemon"}
+  - {service: "displayd", realname: "Display daemon"}
 
 #NATS - common setup between daemons 
 nats:
@@ -22,21 +34,21 @@ log:
   filename: ''
 
 
-# MQTT used between MBUS gateway and Thingsboard (daemon mbustb)
+# MQTT used between MBUS device and Thingsboard (daemon mbustb)
 mqtt:
   devicetopic: "v1/devices/me/telemetry"
   gatewaytopic: "v1/gateway/telemetry"
   request: "v1/devices/me/rpc/request/+"
-  #brokerip: "192.168.1.78"
-  brokerip: "10.128.201.15"
+  brokerip: "192.168.1.78"
+  #brokerip: "10.128.201.15"
   brokerport: "1883"
-  #username: "heth"
-  #password: ""
-  #clientid: "vvs2"
-  username: "sohp"
-  password: "VVS2024!"
-  clientid: "vvs1"
-  keepalive: 300
+  username: "heth"
+  password: "l8heise"
+  clientid: "vvs2"
+  #username: "sohp"
+  #password: "VVS2024!"
+  #clientid: "vvs1"
+  keepalive: 3
 
 # M-Bus communication with Meter devices using serial communication
 # Used by mbusbed daemon
@@ -47,7 +59,7 @@ mbus:
   csvdir: "/var/www/mbus/csv/" # CSV files directory
   devices:
     - {name: "stand1", address: 68, type: "kam603"}
-    - {name: "stand2", address: 69, type: "gav340"}
+    - {name: "stand2", address: 69, type: "kam603"}
     #- {group: "stand1", name: "heat 1", address: 70}
     #- {group: "stand1", name: "power 1", address: 71}
     #- {name: "stand4", address: 71}
@@ -67,7 +79,7 @@ display:
   displaytopic: "display.text"
 
 web:
-  csvserver: "10.128.201.14"
+  csvserver: "192.168.1.96"
 
 meters:
   KAM: 
@@ -79,15 +91,3 @@ meters:
     - {version: 198, name: "EM330-DIN", python: "gav340"}
     - {version: 199, name: "EM340-DIN", python: "gav340"}
 
-# Debug section
-# Used while developing htmbus system while in production
-# htmbus system 1: Production device reading from M-Bus devices 
-#    Publishes a copy of raw (XML coded) M-Bus metrics to MQTT-broker
-# htmbus system 2: Development device - do not read from M-Bus devices but -
-#    Subscribes raw (XML coded) metrics from MQTT-broker 
-#
-debug:
-  mqttpub: False                # Publish a copy of read M-Bus metrics to MQTT-broker
-  mqttsub: False                # Subscribe for M-Bus metrics from MQTT-broker instead of reading M-Bus 
-  mqttbroker: "93.166.84.21"    
-  mqttsubject: "mbus/debug/raw"

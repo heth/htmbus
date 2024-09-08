@@ -5,9 +5,12 @@ import sys
 import time
 import datetime
 from threading import Thread, Event, Lock
+import psutil
 import get_ipv4
 import nats
 from htutil import easyyaml
+from htutil import easyjson
+from htutil import status
 
 # Implementaion of Newhaven 2x20 characters 3v3 display
 # Link: https://newhavendisplay.com/content/specs/NHD-C0220BiZ-FSW-FBW-3V3M.pdf
@@ -15,39 +18,75 @@ from htutil import easyyaml
 # Info on python gpiod: https://pypi.org/project/gpiod/ and https://www.acmesystems.it/libgpiod
 #  and https://www.kernel.org/doc/html/v4.19/driver-api/gpio/index.html ( C but explains concepts)
 
+# Module globals
+dsp_functional=True # Is display functional True/False
+i2cdsp=''           # Open SMbus file descriptor for i2c bus
+dsp_write_lock=''   # Display write lock (Mutex)
+
 def eprint(*args, **kwargs):
     printt(*args, file=sys.stderr, **kwargs)
 
+# Write single byte to open i2cbus 
+def dsp_write_byte(address,register,data):
+    global dsp_functional   # Is display functional True/False
+    if dsp_functional == False:
+        return(False)
+    try:
+        i2cdsp.write_byte_data(address,register,data)
+        return(True)
+    except:
+        dsp_functional = False
+        status.message("Warning","Display not functional")
+        return(False)
+
+
 def dsp_init():
-#Reset display with RESET gpio line
-    global request
-    request = gpiod.request_lines(
-        easyyaml.get('display','gpiochip'),
-        consumer="M-Bus display reset",
-        config={
-            easyyaml.get('display','gpiopin'): gpiod.LineSettings(
-                direction=Direction.OUTPUT, output_value=Value.ACTIVE
-            )   
-        },
-    )
-    request.set_value(easyyaml.get('display','gpiopin'), Value.INACTIVE)
-    time.sleep(10/1000)
-    request.set_value(easyyaml.get('display','gpiopin'), Value.ACTIVE)
-    time.sleep(40/1000)
+    global dsp_functional   # Is display functional True/False
+    global i2cdsp           # Open SMbus file descriptor for i2c bus
+    global dsp_write_lock   # Display write lock (Mutex)
 
-#I2C initialize
-    global i2cdsp
-    global dsp_write_lock
+    # Reset display by issuing a low pulse to XRESET pin on display using GPIO-line
+    try:
+        resetpin = gpiod.request_lines(
+            easyyaml.get('display','gpiochip'),
+            consumer="M-Bus display reset",
+            config={
+                easyyaml.get('display','gpiopin'): gpiod.LineSettings(
+                    direction=Direction.OUTPUT, output_value=Value.ACTIVE
+                )
+            },
+        )
+        # Set low for at least 1 mS - See: http://www.newhavendisplay.com/app_notes/ST7036.pdf
+        resetpin.set_value(easyyaml.get('display','gpiopin'), Value.INACTIVE)
+        time.sleep(10/1000)
+
+        # Display busy at least 40 mS - resetting and starting
+        resetpin.set_value(easyyaml.get('display','gpiopin'), Value.ACTIVE)
+        time.sleep(80/1000)
+    except Exception as e:
+        dsp_functional = False
+        status.message("Warning","Display not functional")
+        print("ERROR: Failed to reset display - GPIO-line: {}".format(e))
+        return(False)
+
+    #I2C initialize
     dsp_write_lock = Lock()
-
     dsp_write_lock.acquire()
-    i2cdsp=smbus.SMBus(easyyaml.get('display','i2cbus'))
+
+    try:
+        i2cdsp=smbus.SMBus(easyyaml.get('display','i2cbus'))
+    except Exception as e:
+        dsp_functional = False
+        status.message("Warning","Display not functional")
+        
 
     initdata=[0x38,0x39,0x14,0x78,0x5E,0x6D,0x0C,0x01,0x06,0x86];
     for i in initdata:
-        i2cdsp.write_byte_data(easyyaml.get('display','i2caddr'),easyyaml.get('display','cmd_reg'),i)
-        time.sleep(1/1000)
+        dsp_write_byte(easyyaml.get('display','i2caddr'),easyyaml.get('display','cmd_reg'),i)
+
+    time.sleep(1/1000)
     dsp_write_lock.release()
+    return(dsp_functional)
 
 
 def dsp_writeyx(y, x, txt):
@@ -57,15 +96,20 @@ def dsp_writeyx(y, x, txt):
         eprint("WARNING: Attempt to write on illegal display line")
         return
     dsp_write_lock.acquire()
+    try:
+        dsp_write_byte(easyyaml.get('display','i2caddr'), easyyaml.get('display','cmd_reg'), line[y-1]+x)
+    except Exception as e:
+        print("ERROR: Display absent on i2c-bus: {}".format(e))
+        dsp_write_lock.release()
+        return
 
-    i2cdsp.write_byte_data(easyyaml.get('display','i2caddr'), easyyaml.get('display','cmd_reg'), line[y-1]+x)
     for char in txt:
-        i2cdsp.write_byte_data(easyyaml.get('display','i2caddr'), easyyaml.get('display','data_reg'), ord(char))
+        dsp_write_byte(easyyaml.get('display','i2caddr'), easyyaml.get('display','data_reg'), ord(char))
     dsp_write_lock.release()
 
 def dsp_clear():
     dsp_write_lock.acquire()
-    i2cdsp.write_byte_data(easyyaml.get('display','i2caddr'), easyyaml.get('display','cmd_reg'), 0x01)
+    dsp_write_byte(easyyaml.get('display','i2caddr'), easyyaml.get('display','cmd_reg'), 0x01)
     dsp_write_lock.release()
 
 #### NATS implementation
@@ -73,9 +117,11 @@ async def nats_start(subject):
     global nc
     nc = await nats.connect(easyyaml.get('nats','connect_str'))
     sub = await nc.subscribe(subject, cb=nats_handler)
+    #status = await nc.subscribe("mbus.status", cb=status_handler)
+    await status.init("displayd",nc)
 
-def nats_stop():
-    nc.close()
+async def nats_stop():
+    await nc.close()
 
 async def nats_handler(msg):
     subject = msg.subject
@@ -119,5 +165,8 @@ def dsp_clock_start(y,x):       # Live clock on pos y,x HH:MM
     thread.start()
 
 def dsp_clock_stop():   # Live clock on pos y,x HH:MM:SS
+    print("Stop 1")
     event.clear()
+    print("Stop 2")
     thread.join()
+    print("Stop 3")

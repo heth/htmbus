@@ -2,7 +2,7 @@
 {% block content %}
 <h1>M-Bus status Page</h1>
 <p>
-M-Bus device gateway V1.0 beta
+Status M-Bus devices
 </p>
 <head>
  <style>
@@ -24,7 +24,7 @@ M-Bus device gateway V1.0 beta
     th, td {
       padding: 2px 5px;
       border: 1px solid #529432;
-      text-align: right;
+      text-align: left;
       /* position: sticky;
       top: 0;*/
     }
@@ -34,24 +34,57 @@ M-Bus device gateway V1.0 beta
     }
     html, body{
         position: relative; /*top;*/
-        max-width:75%;
-        overflow-y:hidden;
+        max-width:100%;
+        /* overflow-y:hidden;*/
+        overflow:scroll;
+        overflow-y:scroll;
     }
   </style>
 </head>
-
-<div class="fixTableHead">
+<div style="width: 75%; text-align: center;">
 <table class="table table-striped">
     <thead class="th">
     <tr>
-      {% for field in headline %}
+      {% for field in devheadline %}
         <th>{{field}}</th>
       {% endfor %}
     </tr>
 	{% for device in devinfo %}
 	<tr>
-	  {% for data in device %}
-	  <td>{{ data }}</td>
+	  	{% for data in device %}
+	   		{% if data is string %}
+        		{% set align = 'left' %}
+       		{% else %}
+        		{% set align = 'right' %}
+       {% endif %}
+      <td><div style="text-align: {{ align }};">
+	  {{ data }}
+	  </div></td>
+	  {% endfor %}
+	</tr>
+	{% endfor %}
+</table>
+</div>
+<p>Status services</p>
+<div class="fixTableHead">
+<table class="table table-striped">
+    <thead class="th">
+    <tr>
+      {% for field in svcheadline %}
+        <th>{{field}}</th>
+      {% endfor %}
+    </tr>
+	{% for device in svcinfo %}
+	<tr>
+	  	{% for data in device %}
+	   		{% if data is string %}
+        		{% set align = 'left' %}
+       		{% else %}
+        		{% set align = 'right' %}
+       {% endif %}
+      <td><div style="text-align: {{ align }};">
+	  {{ data }}
+	  </div></td>
 	  {% endfor %}
 	</tr>
 	{% endfor %}

@@ -9,7 +9,7 @@ SYSTEMDDIR=/etc/systemd/system/
 $(VENV)/bin/activate: requirements.txt
 	python3 -m venv $(VENV)
 	$(PIP) install -r requirements.txt
-	if test ! -L htutil; then\
+	@if test ! -L htutil; then\
 		echo "Linking shared utilities";\
 		ln -s ../htutil .;\
 	fi

@@ -4,6 +4,7 @@ import nats
 import re
 from htutil import easyyaml
 from htutil import easyjson
+from htutil import status
 
 
 # Global nats reference
@@ -15,7 +16,7 @@ async def init():
     print("Nats.init() - thread ID is {}".format(threading.get_native_id()),flush=True)
     try:
         glo_nats['client'] = await nats.connect(easyyaml.get('nats','connect_str') or "nats://127.0.0.1:4222")
-        #glo_nats['sub'] = await glo_nats['client'].subscribe(subject, cb=nats_sub_handler)
+        await status.init("mbuswebd",glo_nats['client'])
         glo_nats['sub'] = await glo_nats['client'].subscribe(easyyaml.get('nats','devicetopic'), cb=nats_sub_handler)
     except Exception as e:
         print("nats.init() - Something went wrong initializing nats: {}".format(e))
@@ -70,18 +71,38 @@ async def dataget():
     return(data)
 
 async def devices_get():
-    sub= await nats.connect(easyyaml.get('nats','connect_str') or "nats://127.0.0.1:4222")
     try:
-        devstat = await sub.request(easyyaml.get('nats','request'),b"devices")
+        devstat = await glo_nats['client'].request(easyyaml.get('nats','request'),b"devices")
     except Exception as e:
-        print("nats devices_get() - Something went wrong: {}".format(e))
         return(None)
-    print("Devstat.data = {}".format(devstat.data))
-    await sub.close()
     if devstat.data == None:
-        print("To bad")
         return(None)
     return(easyjson.deser(devstat.data))
+
+async def servicestatus_get():
+    services = easyyaml.get('services','identity')
+    names=[]
+    data=[]
+
+    # Get headline for services first
+    for service in services:
+        names.append(service['service'])
+    for i in names:
+        subject=easyyaml.get('nats','request') + '.' + i
+        try:
+            request = await glo_nats['client'].request(subject,b"status")
+        except:
+            request = None
+            pass
+
+        if request != None:
+            data.append(easyjson.deser(request.data)) 
+        else:
+            data.append([i,"-","-","-","-","-","-","-","ERROR: Not responding to NATS requests!"])
+    
+    headline = status.serviceinfo_headline_get()
+    return headline,data
+
 
 
 

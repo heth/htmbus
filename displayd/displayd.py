@@ -16,12 +16,10 @@ def signal_handler(sig):
     dsp.dsp_writeyx(2,1,"Stopping.......")
     systemd.notify("STOPPING=1")
     for i in reversed(range(1,6)):
-        time.sleep(0.5)
+        time.sleep(0.2)
         dsp.dsp_writeyx(2,16,f"{i:1}")
+    dsp.dsp_clear()
 
-    time.sleep(0.5)
-    dsp.dsp_clock_stop()
-    dsp.nats_stop()  # Error calling async method from sync method
     exit()
 
 async def main():

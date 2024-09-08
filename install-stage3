@@ -7,7 +7,7 @@ perror() {
 }
 if [ $EUID -ne 0 ]
 then
-        echo -e "ERROR: You need root credentials to run this script"
+        perror "ERROR: You need root credentials to run this script"
         exit
 fi
 
