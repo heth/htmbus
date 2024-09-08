@@ -25,8 +25,8 @@ async def stand2():
 
 async def mbus_dev_status():
     ''' Get M-Bus meter status from all devices '''
-    devfields = ['device_name','manufacturer','model','serial','address','timestamp','count','error']
-    headline=['Name','Manufacturer','Model','Serial','M-Bus Address','Last seen','Successful reads','Failed reads']
+    devfields = ['device_name','description','manufacturer','model','serial','address','timestamp','count','error']
+    headline=['Name','Description','Manufacturer','Model','Serial','M-Bus Address','Last seen','Successful reads','Failed reads']
     devinfo=[]
     devstatus = await htnats.devices_get()
     if devstatus == None:

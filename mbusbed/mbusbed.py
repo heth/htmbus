@@ -102,7 +102,7 @@ async def main():
 
     devices=easyyaml.get('mbus','devices')
     for dev in devices:
-        devdesc_arr.append(await gendev.open(dev['address'],dev['name'],dev['type']))
+        devdesc_arr.append(await gendev.open(dev['address'],dev['name'],dev['type'],dev['description']))
 
     mbuscount=0
     while True:

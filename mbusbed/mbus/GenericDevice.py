@@ -20,13 +20,14 @@ def init(tty, baudrate):
     mbus.init(tty, baudrate)
 
 
-async def open(address, device_name, device_type):
+async def open(address, device_name, device_type, description):
     """Creat device-descriptor to M-Bus device. Needed for further access such as read()."""
     devdesc = mbus.open(address)
     devdesc.update(
         {
             'device_name': device_name,
             'device_type': device_type,
+            'description': description,
             'csvfile': None
         }
     )

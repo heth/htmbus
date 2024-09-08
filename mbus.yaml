@@ -58,8 +58,8 @@ mbus:
   pollinterval: 60
   csvdir: "/var/www/mbus/csv/" # CSV files directory
   devices:
-    - {name: "stand1", address: 68, type: "kam603"}
-    - {name: "stand2", address: 69, type: "kam603"}
+    - {name: "stand1", address: 68, type: "kam603", description: "Heat meter stand 1"}
+    - {name: "stand1p", address: 69, type: "kam603", description: "Power meter stand 1"}
     #- {group: "stand1", name: "heat 1", address: 70}
     #- {group: "stand1", name: "power 1", address: 71}
     #- {name: "stand4", address: 71}
