@@ -43,5 +43,11 @@ do
 	fi
     cd ..
 done
-echo "All services installed"
+echo "***************************************************"
+echo "            All services installed"
+echo "                     ***"
+echo " Remeber to configure /etc/mbus/mbus.yaml - and"
+echo " restart services: sudo systemctl restart $SERVICES"
+echo "***************************************************"
+
 

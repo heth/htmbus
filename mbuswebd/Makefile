@@ -51,7 +51,7 @@ install: $(SERVICE).service
 		sudo systemctl stop nginx;\
 		sudo cp ./nginx.conf $(NGINX_CONF);\
 		sudo systemctl start nginx;\
-		sudo rm $(NGINX_SITES_ENABLED)/*;\
+		#sudo rm $(NGINX_SITES_ENABLED)/*;\  # Fails if directory empty - and also unnecesary
 	fi
 
 
