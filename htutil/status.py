@@ -13,11 +13,39 @@ async def init(id,nats_connect):
     subject=easyyaml.get('nats','request') + '.' + identity
     await nats_connect.subscribe(subject, cb=handler)
 
-def message(newstatus,newmessage):
-    global status
+### NEW -->
+'''
+Status levels:
+  OK:      Service running and is okay - message is informational level
+  Warning: Service running but a minor has a minor problem (Overides OK message)
+  Error:   Service running but has a major problem (Overrides OK and WARNING messages)
+'''
+
+def info(message):
     global status_text
-    status=newstatus
-    status_text=newmessage
+    if status == 'OK':      
+        status_text = message
+
+def warning(message):
+    global status_text
+    global status
+    if status != 'Error':
+        status='Warning'
+        status_text=message
+
+def error(message):
+    global status_text
+    global status
+    status='Error'
+    status_text=message
+
+### <-- NEW 
+
+#def message(newstatus,newmessage):
+#    global status
+#    global status_text
+#    status=newstatus
+#    status_text=newmessage
 
 def serviceinfo_data_get():
     sitrep=[]

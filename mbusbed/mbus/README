@@ -100,10 +100,10 @@ Descriptor field can contain:
 
 kam603format = (
   ('extra','Count', 'int',None,None,None),            
-  ('extra','Date', 'str','Local',None,None),            # Timstamp - int, UTC - str, Local - str
+  ('extra','Date', 'str','Local',None,None),               # Timstamp - int, UTC - str, Local - str - in this example use local time
   ('Value','Flow temp', 'float','\xboC','divide',100),     # Extract Value field, convert to float and divide by 100 [21.29 °C] - '\xb0C' = °C
   ('Value','Power', 'int','W','multiply',100),             # Extract Value field, convert to int and multiply with 10  [400 W]
-  ('Delta',u'\u0394' + "Power", 'int','W','multiply',100),             # Extract Value field, convert to int and multiply with 10  [400 W] (Show as Delta value)
+  ('Delta',u'\u0394' + "Power", 'int','W','multiply',100), # Extract Value field, convert to int and multiply with 10  [400 W] (Show as Delta value)
   ('Value','Vol flow', 'int','m^3',None,None),             # Extract Value field and convert to int   [100 m^3]
   ('Value','Max vol flow','int','m^3',None,None),          # Extract Value field and convert to int   [123 m^3]
   ('Value','Max vol flow - stored','int','m^3',None,None), # Extract Value field and convert to int   [7123 m^3]
@@ -124,12 +124,3 @@ kam603 = [
   ['Max vol flow - stored','int',7123,'m^3'],
 ]
 
-See main_example.py for example usage
-
-Saving values:
-==============
-
-SQLite?
-
-Always save latest fetch - easy to do delta
-Save in file - get last line

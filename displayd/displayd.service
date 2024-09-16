@@ -1,5 +1,5 @@
 [Unit]
-Description=M-Bus display service
+Description=M-Bus display service daemon
 After=network.target
 Before=nginx.service
 StartLimitIntervalSec=60

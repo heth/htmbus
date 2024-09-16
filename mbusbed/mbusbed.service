@@ -1,5 +1,5 @@
 [Unit]
-Description=M-Bus back end  service
+Description=M-Bus back-end service daemon
 After=network.target
 Before=nginx.service
 
