@@ -44,6 +44,7 @@ def dsp_init():
     global dsp_functional   # Is display functional True/False
     global i2cdsp           # Open SMbus file descriptor for i2c bus
     global dsp_write_lock   # Display write lock (Mutex)
+    global resetpin         # Needs to be in-scope for gpiod
 
     # Reset display by issuing a low pulse to XRESET pin on display using GPIO-line
     try:
