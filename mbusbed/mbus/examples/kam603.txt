@@ -1,0 +1,5 @@
+
+
+
+Links:
+https://github.com/wmbusmeters/wmbusmeters/blob/master/src/driver_kamheat.cc
