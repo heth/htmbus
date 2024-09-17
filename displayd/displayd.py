@@ -29,7 +29,7 @@ async def main():
     loop.add_signal_handler(signal.SIGQUIT,signal_handler,signal.SIGQUIT)
     easyyaml.init(yamlfile)
     dsp.dsp_init()
-    dsp.dsp_clock_start(1,16)
+    dsp.dsp_clock_start(1,12)
     await dsp.nats_start(easyyaml.get('display','displaytopic'))
 
     global systemd
