@@ -70,9 +70,9 @@ def nats_stop():
 async def nats_sub_handler(msg):
     global reconnects
     subtopics=re.split("\.",msg.subject)
-    if subtopics[3] == easyyaml.get('nats','subtopic_data'):
-        json_data=parse_json(subtopics[2], msg.data)
     try:
+        if subtopics[3] == easyyaml.get('nats','subtopic_data'):
+            json_data=parse_json(subtopics[2], msg.data)
             mqttclient.publish(easyyaml.get('mqtt','gatewaytopic'),json_data)
             if reconnects > 0:
                 status.info("Retry connection attempts: {}".format(reconnects))
