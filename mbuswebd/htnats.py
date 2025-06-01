@@ -42,31 +42,33 @@ async def init():
 def headlineget():
     return(glo_nats['headline'])
 
+async def ipget():
+    ip = await glo_nats['client'].request('display.ip',b'',timeout=1)
+    return(ip.data.decode())
+
 async def nats_sub_handler(msg):
-    print("Nats.nats_sub_handler() - thread ID is {}".format(threading.get_native_id()),flush=True)
+    #print("Nats.nats_sub_handler() - thread ID is {}".format(threading.get_native_id()),flush=True)
     subtopics=re.split("\.",msg.subject)
     if subtopics[3] == easyyaml.get('nats','subtopic_data'):
         json_data=easyjson.deser(msg.data)
-        print("GOT IT: {}".format(json_data))
         dataput(json_data)
         return()
     if subtopics[3] == easyyaml.get('nats','subtopic_error'):
-        print("Failed {}".format(msg.data))
         return()
     
 natsdata=None # global natsdata is used to deliver data from nats-thread to main-thread
 
 def dataput(data):
     global natsdata
-    print("Putting data thread ID is {} native is {}".format(threading.get_ident(), threading.get_native_id()),flush=True)
+    #print("Putting data thread ID is {} native is {}".format(threading.get_ident(), threading.get_native_id()),flush=True)
     natsdata=data
     if glo_nats['lock'].locked() == True:
         glo_nats['lock'].release()
 
 async def dataget():
-    print("Getting data thread ID is {}".format(threading.get_native_id()),flush=True)
+    #print("Getting data thread ID is {}".format(threading.get_native_id()),flush=True)
     await glo_nats['lock'].acquire()
-    print("Got the data thread ID is {}".format(threading.get_native_id()),flush=True)
+    #print("Got the data thread ID is {}".format(threading.get_native_id()),flush=True)
     data=natsdata
     return(data)
 

@@ -38,8 +38,7 @@ install: $(SERVICE).service
 	@if test -f $(SERVICE).service; then\
 		echo "Creating systemd service file";\
 		sudo cp $(SERVICE).service $(SYSTEMDDIR);\
-		sudo sed -i s!PYTHONNAME!`realpath -s venv/bin/python3`! $(SYSTEMDDIR)$(SERVICE).service;\
-		sudo sed -i s!SERVICENAME!`realpath $(SERVICE).py`! $(SYSTEMDDIR)$(SERVICE).service;\
+		sudo sed -i s!SERVICENAME!`realpath -s $(SERVICE).sh`! $(SYSTEMDDIR)$(SERVICE).service;\
 		sudo systemctl enable $(SERVICE).service;\
 		sudo systemctl start $(SERVICE).service;\
 	fi

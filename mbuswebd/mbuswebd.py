@@ -42,7 +42,6 @@ class QuartSIO:
 
     async def _run(self, host: str, port: int):
         try:
-            print("STARTUP")
             easyyaml.init(yamlfile)
             log.init(level=3)
             await htnats.init()
@@ -78,11 +77,10 @@ app = QuartSIO()
 
 async def scroll_worker():
 # Socketio see: https://github.com/miguelgrinberg/python-socketio/discussions/777
-    print("scroll_worker starting")
     count=0
 
     while True:
-        print("scrool_worker - thread ID is {}".format(threading.get_native_id()),flush=True)
+        #print("scrool_worker - thread ID is {}".format(threading.get_native_id()),flush=True)
         rawdata = await htnats.dataget()
         if rawdata == None:
             log.error("scroll_worker: nats_thread.dataget() failed")
@@ -100,19 +98,19 @@ async def scroll_worker():
         if data[2] == 'stand2':
             await app.emit('kam603updatestand2', {'data': data})
 
-        print("-----------------------> Count: {}                                       ".format(count),flush=True)
+        #print("-----------------------> Count: {}                                       ".format(count),flush=True)
 
 @app.route("/")
 async def index():
     broker=easyyaml.get('mqtt','brokerip') # Broker contains ThingsBoard
-    csvserver=easyyaml.get('web','csvserver') # Broker contains ThingsBoard
+    csvserver = await htnats.ipget()
     return await render_template('index.html',broker=broker, csvserver=csvserver)
 
 @app.on("connect")
 async def on_connect(sid, environ):
     global sio_users
     sio_users = sio_users + 1
-    print("Total sio_users {} New  connected sid = {}".format(sio_users,sid))
+    #print("Total sio_users {} New  connected sid = {}".format(sio_users,sid))
 
 @app.on("disconnect")
 async def on_disconnect(sid):
@@ -121,10 +119,10 @@ async def on_disconnect(sid):
         print("ERROR: Negative number of sio_users - reached zero and one disconnected !!!")
     else:
         sio_users = sio_users - 1
-    print("Total sio_users {} Disconnected sid = {}".format(sio_users,sid))
+    #print("Total sio_users {} Disconnected sid = {}".format(sio_users,sid))
 
 
-@app.route("/stand1")
+@app.route("/stand3")
 async def stand1():
     headline = htnats.headlineget()
     headings = []
@@ -134,7 +132,7 @@ async def stand1():
 
 @app.on("*")
 async def on_message(message, sid, *args):
-    print("Message:", message, args)
+    #print("Message:", message, args)
     await app.emit("echo", message)
 
 if __name__ == "__main__":

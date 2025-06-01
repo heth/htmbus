@@ -101,14 +101,13 @@ async def mqtt_start():
     except Exception as e:
         reconnects = reconnects + 1
         status.message("Warning","Connection to Thingsboard MQTT failed (Retrying: {}): {}".format(reconnects,e))
-        mqttclient._disconnected = asyncio.Future()
+        #mqttclient._disconnected = asyncio.Future()
+        await mqttclient.disconnect()
         return False
-        print('Connection failed; Reconnecting ')
         #log.warn('Connection failed; Reconnecting ')
 
 def mqtt_connect(client, flags, rc, properties):
-    print('[CONNECTED {}]'.format(client._client_id))
-    status.message("OK","Connection attempts: {}".format(reconnects))
+    status.message("OK","Reonnection attempts: {}".format(reconnects))
     #log.info('[CONNECTED {}]'.format(client._client_id))
     #for i in range(1000000):
     #    i=i+1-1
@@ -122,23 +121,17 @@ async def mqtt_message(client, topic, payload, qos, properties):
 
 
 def mqtt_disconnect(client, packet, exc=None):
-    #log.warn('[DISCONNECTED {}]'.format(client._client_id))
-    print('[DISCONNECTED {}]'.format(client._client_id))
+    log.warn('[DISCONNECTED {}]'.format(client._client_id))
 
 
 def mqtt_subscribe(client, mid, qos, properties):
-    #log.info('[SUBSCRIBED {}] QOS: {}'.format(client._client_id, qos))
-    print('[SUBSCRIBED {}] QOS: {}'.format(client._client_id, qos))
+    log.info('[SUBSCRIBED {}] QOS: {}'.format(client._client_id, qos))
 
 async def main():
     easyyaml.init(defaultyaml)
     log.init()
     await nats_start(easyyaml.get('nats','devicetopic'))
-    #print("1: What's up doc?")
-    #await mqtt_start()
-    #print("2: What's up doc?")
     while await mqtt_start() == False:
-        print("3: What's up doc?")
         await asyncio.sleep(10)
     while True:
         await asyncio.sleep(60)

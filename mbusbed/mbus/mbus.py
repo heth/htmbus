@@ -84,11 +84,13 @@ async def read_raw(devdesc):
 # Only for debugging/development purposes
 async def debug_mqtt_pub(devdesc,data):
     broker = easyyaml.get('debug','mqttbroker')
+    user = easyyaml.get('debug','mqttuser')
+    pw = easyyaml.get('debug','mqttpassword')
     subject = "{}/{}".format(easyyaml.get('debug','mqttsubject'),devdesc['address'])
 
     if data == None:
         data=''
-    args = ["-h", broker, "-t", subject,"-m", data]
+    args = ["-h", broker, "-u", user, "-P", pw, "-t", subject,"-m", data]
     process = await asyncio.create_subprocess_exec("mosquitto_pub", *args)
     
 # Only for debugging/development purposes

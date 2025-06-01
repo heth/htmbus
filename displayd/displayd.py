@@ -19,7 +19,6 @@ def signal_handler(sig):
         time.sleep(0.2)
         dsp.dsp_writeyx(2,16,f"{i:1}")
     dsp.dsp_clear()
-
     exit()
 
 async def main():
@@ -41,3 +40,4 @@ async def main():
 
 if __name__ == '__main__':
     asyncio.run(main())
+

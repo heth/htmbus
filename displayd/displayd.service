@@ -7,7 +7,7 @@ StartLimitBurst=12
 
 
 [Service]
-ExecStart=PYTHONNAME SERVICENAME
+ExecStart=SERVICENAME
 Type=simple
 User=mbus
 Group=mbus

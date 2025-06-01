@@ -8,7 +8,11 @@ def get_ipv4(iface):
 
     for i in interface_list:
         if iface == i:
-            addresses=netifaces.ifaddresses(iface)
+            try:
+                addresses=netifaces.ifaddresses(iface)
+            except Exception as e:
+                print("ERROR: Retriveing IP address on {} {}".format(iface,e))
+
             if ipv4 in addresses:
                 return(addresses[ipv4][0]['addr'])
             else:

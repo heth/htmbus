@@ -26,17 +26,19 @@ dsp_write_lock=''   # Display write lock (Mutex)
 def eprint(*args, **kwargs):
     printt(*args, file=sys.stderr, **kwargs)
 
-# Write single byte to open i2cbus 
+# Write single byte to open i2cbus
 def dsp_write_byte(address,register,data):
     global dsp_functional   # Is display functional True/False
     if dsp_functional == False:
         return(False)
     try:
         i2cdsp.write_byte_data(address,register,data)
+        #print("Wrote.: {} to {}".format(data,register))
         return(True)
     except:
-        dsp_functional = False
-        status.message("Warning","Display not functional")
+        #dsp_functional = False
+        print("FAILED: {} to {}".format(data,register))
+        status.warning("Display not functional")
         return(False)
 
 
@@ -44,6 +46,7 @@ def dsp_init():
     global dsp_functional   # Is display functional True/False
     global i2cdsp           # Open SMbus file descriptor for i2c bus
     global dsp_write_lock   # Display write lock (Mutex)
+    global resetpin         # Needs to be in-scope for gpiod
 
     # Reset display by issuing a low pulse to XRESET pin on display using GPIO-line
     try:
@@ -58,14 +61,14 @@ def dsp_init():
         )
         # Set low for at least 1 mS - See: http://www.newhavendisplay.com/app_notes/ST7036.pdf
         resetpin.set_value(easyyaml.get('display','gpiopin'), Value.INACTIVE)
-        time.sleep(10/1000)
+        time.sleep(50/1000)
 
         # Display busy at least 40 mS - resetting and starting
         resetpin.set_value(easyyaml.get('display','gpiopin'), Value.ACTIVE)
         time.sleep(80/1000)
     except Exception as e:
         dsp_functional = False
-        status.message("Warning","Display not functional")
+        status.warning("Display not functional")
         print("ERROR: Failed to reset display - GPIO-line: {}".format(e))
         return(False)
 
@@ -77,12 +80,16 @@ def dsp_init():
         i2cdsp=smbus.SMBus(easyyaml.get('display','i2cbus'))
     except Exception as e:
         dsp_functional = False
-        status.message("Warning","Display not functional")
-        
+        status.warning("Display not functional")
 
-    initdata=[0x38,0x39,0x14,0x78,0x5E,0x6D,0x0C,0x01,0x06,0x86];
+
+    #initdata=[0x38,0x39,0x14,0x78,0x5E,0x6D,0x0C,0x01,0x06,0x86];  # ORIGINAL
+    #initdata=[0x38,0x39,0x14,0x78,0x5E,0x6D,0x0C,0x01,0x06];  # Newhaven 2x20
+    # Contrast from 0x78 to 0x7F
+    initdata=[0x38,0x39,0x14,0x7F,0x5E,0x6F,0x0C,0x01,0x06];  # leg
     for i in initdata:
         dsp_write_byte(easyyaml.get('display','i2caddr'),easyyaml.get('display','cmd_reg'),i)
+        time.sleep(1/1000)
 
     time.sleep(1/1000)
     dsp_write_lock.release()
@@ -127,9 +134,14 @@ async def nats_handler(msg):
     subject = msg.subject
     reply = msg.reply
     # Set string to 15 characters - overwriting existing fields in display
-    data = "{:<15}".format(msg.data.decode())
-    data = data.ljust(15)[:15]  # Truncate to 15 chars
-    dsp_writeyx(1,1, str(data))
+    match subject:
+        case 'display.text':
+            data = "{:<15}".format(msg.data.decode())
+            data = data.ljust(15)[:15]  # Truncate to 15 chars
+            dsp_writeyx(1,1, str(data))
+        case 'display.ip':
+            ip_now=get_ipv4.get_ipv4(easyyaml.get('display','network'))
+            await msg.respond(ip_now.encode("utf-8"))
 
 #### Clock in thread
 def dsp_clock_write(y,x, now, colon_visible):
@@ -170,3 +182,4 @@ def dsp_clock_stop():   # Live clock on pos y,x HH:MM:SS
     print("Stop 2")
     thread.join()
     print("Stop 3")
+
