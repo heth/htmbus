@@ -62,7 +62,8 @@ async def nats_sub_handler(msg):
             json_data=parse_json(subtopics[2], msg.data)
             #print(json_data)
             mqttclient.publish(easyyaml.get('mqtt','gatewaytopic'),json_data)
-            status.message("OK","Connection attempts: {}".format(reconnects))
+            if reconnects > 0:
+                status.message("OK","Connection attempts: {} (1)".format(reconnects))
     except:
         reconnects = reconnects + 1
         status.message("Warning","Writing to Thingsboard MQTT failed (Retrying: {}): {}".format(reconnects,e))
@@ -94,23 +95,20 @@ async def mqtt_start():
             keepalive=easyyaml.get('mqtt','keepalive') or 300,
             port=easyyaml.get('mqtt','port') or 1883
         )
-        status.message("OK","Connection attempts: {}".format(reconnects))
+        if reconnects > 0:
+            status.message("OK","Connection attempts: {} (2)".format(reconnects))
         # subscribe moved to mqtt_connect - as reconnect re.subscribes if broker restartet
         #mqttclient.subscribe(easyyaml.get('mqtt','request'))
         return True
     except Exception as e:
         reconnects = reconnects + 1
         status.message("Warning","Connection to Thingsboard MQTT failed (Retrying: {}): {}".format(reconnects,e))
-        #mqttclient._disconnected = asyncio.Future()
         await mqttclient.disconnect()
         return False
-        #log.warn('Connection failed; Reconnecting ')
 
 def mqtt_connect(client, flags, rc, properties):
-    status.message("OK","Reonnection attempts: {}".format(reconnects))
-    #log.info('[CONNECTED {}]'.format(client._client_id))
-    #for i in range(1000000):
-    #    i=i+1-1
+    if reconnects > 0:
+        status.message("OK","Reconnection attempts: {}".format(reconnects))
     mqttclient.subscribe(easyyaml.get('mqtt','request'))
 
 

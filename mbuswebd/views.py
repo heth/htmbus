@@ -13,6 +13,7 @@ from htutil import easyjson
 def init(app):
     app.add_url_rule('/stand2', view_func=stand2)
     app.add_url_rule('/status', view_func=status)
+#    app.add_url_rule('/alldevices', view_func=alldevices)
 
 
 #@app.route("/stand2")
@@ -58,3 +59,11 @@ async def status():
     )
 
 
+#@app.route("/alldevices/<mbusdevice>")
+async def alldevicesOld(mbusdevice):
+    headline =  htnats.headlineget()
+    headings = []
+    for i in headline:
+        headings.append(i[0])
+    #return await render_template(f'{mbusdevice}.html',headings=headings)
+    return await render_template('stand2.html',headings=headings)

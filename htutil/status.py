@@ -4,6 +4,8 @@ from datetime import timezone
 from htutil import easyjson
 from htutil import easyyaml
 
+# This file is used by all daemons to collect and return statistics upon request via NATS by mbuswebd
+
 status="OK" # Default status until something goes wrong
 status_text=''
 identity=''
@@ -44,6 +46,12 @@ def serviceinfo_data_get():
     sitrep.append(float(round(mem,2)))
     sitrep.append(status)   
     sitrep.append(status_text) 
+    
+    # System info - not used - yet
+    #sysinfo = []
+    #sysinfo.append(psutil.boot_time())              # Boot time in Unix epoch timestamp
+    #sysinfo.append(psutil.diskusage('/').total)     # Root partition size in bytes
+    #sysinfo.append(psutil.diskusage('/').percent)   # Root partion disk space used in %
     return sitrep
 
 def serviceinfo_headline_get():

@@ -4,11 +4,18 @@
 #  - mbustb   - M-Bus ThingsBoard daemon - Communicates with IoT ThingsBoard using MQTT
 #  - mbusweb  - Flask WEB-server daemon - showing basic information on M-Bus devices
 
+#DEBUG: Used only for development
+# if mqttpub = True, all mbus-readings are published to the mqttbroker with mqttsubject
+# if mqttsub = True, no mbus-readings are performed from serial port. Instead mbus-readings are 
+#    subscribed from mqttbroker using mqttsubject. 
 debug:
-  mqttpub: False
-  mqttsub: True
+  mqttpub: True
+  mqttsub: False
   mqttbroker: "93.166.84.21"
   mqttsubject: "mbus/debug/raw"
+# mqttuser and mqttpassword are optional 
+#  mqttuser: "USERNAME"
+#  mqttpassword: "PASSWORD"
 
 services:
   identity:
@@ -39,7 +46,7 @@ mqtt:
   devicetopic: "v1/devices/me/telemetry"
   gatewaytopic: "v1/gateway/telemetry"
   request: "v1/devices/me/rpc/request/+"
-  brokerip: "192.168.1.78"
+  brokerip: "192.168.1.81"
   #brokerip: "10.128.201.15"
   brokerport: "1883"
   username: "heth"
@@ -77,9 +84,7 @@ display:
   line2: 0xC0
   network: "eth0"
   displaytopic: "display.text"
-
-web:
-  csvserver: "192.168.1.96"
+  #displaytopic: "display.*"
 
 meters:
   KAM: 

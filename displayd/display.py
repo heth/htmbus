@@ -38,7 +38,7 @@ def dsp_write_byte(address,register,data):
     except:
         #dsp_functional = False
         print("FAILED: {} to {}".format(data,register))
-        status.warning("Display not functional")
+        status.message("Warning","Display not functional 1")
         return(False)
 
 
@@ -68,7 +68,7 @@ def dsp_init():
         time.sleep(80/1000)
     except Exception as e:
         dsp_functional = False
-        status.warning("Display not functional")
+        status.message("Warning","Display not functional 2")
         print("ERROR: Failed to reset display - GPIO-line: {}".format(e))
         return(False)
 
@@ -80,7 +80,7 @@ def dsp_init():
         i2cdsp=smbus.SMBus(easyyaml.get('display','i2cbus'))
     except Exception as e:
         dsp_functional = False
-        status.warning("Display not functional")
+        status.message("Warning","Display not functional 3")
 
 
     #initdata=[0x38,0x39,0x14,0x78,0x5E,0x6D,0x0C,0x01,0x06,0x86];  # ORIGINAL
@@ -124,7 +124,6 @@ async def nats_start(subject):
     global nc
     nc = await nats.connect(easyyaml.get('nats','connect_str'))
     sub = await nc.subscribe(subject, cb=nats_handler)
-    #status = await nc.subscribe("mbus.status", cb=status_handler)
     await status.init("displayd",nc)
 
 async def nats_stop():

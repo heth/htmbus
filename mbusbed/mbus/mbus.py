@@ -84,13 +84,18 @@ async def read_raw(devdesc):
 # Only for debugging/development purposes
 async def debug_mqtt_pub(devdesc,data):
     broker = easyyaml.get('debug','mqttbroker')
+    subject = "{}/{}".format(easyyaml.get('debug','mqttsubject'),devdesc['address'])
+
+    # Username and password optional
     user = easyyaml.get('debug','mqttuser')
     pw = easyyaml.get('debug','mqttpassword')
-    subject = "{}/{}".format(easyyaml.get('debug','mqttsubject'),devdesc['address'])
+    if user and pw != None:
+        args = ["-h", broker, "-u", user, "-P", pw, "-t", subject,"-m", data]
+    else:
+        args = ["-h", broker, "-t", subject,"-m", data]
 
     if data == None:
         data=''
-    args = ["-h", broker, "-u", user, "-P", pw, "-t", subject,"-m", data]
     process = await asyncio.create_subprocess_exec("mosquitto_pub", *args)
     
 # Only for debugging/development purposes
@@ -99,7 +104,14 @@ async def debug_mqtt_sub(devdesc):
     #subject = easyyaml.get('debug','mqttsubject')
     subject = "{}/{}".format(easyyaml.get('debug','mqttsubject'),devdesc['address'])
 
-    args = ["-C", "1" , "-h", broker, "-t", subject]
+    # Username and password optional
+    user = easyyaml.get('debug','mqttuser')
+    pw = easyyaml.get('debug','mqttpassword')
+    if user and pw != None:
+        args = ["-C", "1", "-h", broker, "-u", user, "-P", pw, "-t", subject]
+    else:
+        args = ["-C", "1", "-h", broker, "-t", subject]
+
     process = await asyncio.create_subprocess_exec("mosquitto_sub", *args, stdout=asyncio.subprocess.PIPE, stderr=asyncio.subprocess.PIPE)
     stdout, stderr = await process.communicate()
     #print("Address: {} got {}".format(devdesc['address'],stdout))
@@ -130,11 +142,12 @@ async def read(devdesc):
         # Normal read from M-Bus
         rawdata = await read_raw(devdesc)
 
+    if rawdata == None:
+        return None
+
     if easyyaml.get('debug','mqttpub') == True:
         # Only for debugging/development purposes
         await debug_mqtt_pub(devdesc,rawdata)
-    if rawdata == None:
-        return None
     root = ET.fromstring(rawdata)
     return root
 

@@ -2,7 +2,7 @@ import quart_flask_patch
 import asyncio
 import socketio
 import threading
-from quart import Quart, render_template, websocket
+from quart import Quart, render_template, websocket, request
 from quart_cors import cors
 import uvicorn
 import nats
@@ -50,9 +50,10 @@ class QuartSIO:
             nav.register_element('mbus_navbar', Navbar(branding, #'Mercantec',
                                            View('Home page', 'index'),
                                            View('Status', 'status'),
-                                           #View('Status devices', 'statusdevices'),
                                            View('Stand 1', 'stand1'),
                                            View('Stand 2', 'stand2'),
+                                           View('Devices', 'leg'),
+                                           View('leg2', 'leg2'),
                                            #View('Alle stande', 'alldevices'),
                                            ))
             Bootstrap(self._quart_app)
@@ -103,8 +104,7 @@ async def scroll_worker():
 @app.route("/")
 async def index():
     broker=easyyaml.get('mqtt','brokerip') # Broker contains ThingsBoard
-    csvserver = await htnats.ipget()
-    return await render_template('index.html',broker=broker, csvserver=csvserver)
+    return await render_template('index.html',broker=broker)
 
 @app.on("connect")
 async def on_connect(sid, environ):
@@ -122,13 +122,71 @@ async def on_disconnect(sid):
     #print("Total sio_users {} Disconnected sid = {}".format(sio_users,sid))
 
 
-@app.route("/stand3")
+@app.route("/stand1")
 async def stand1():
     headline = htnats.headlineget()
     headings = []
     for i in headline:
         headings.append(i[0])
     return await render_template('stand1.html',headings=headings)
+
+@app.route("/leg", methods=['GET','POST'])
+async def leg():
+    headline = htnats.headlineget()
+    headings = []
+    print(f"Request method: {request.method}")
+    for i in headline:
+        headings.append(i[0])
+    if request.method == 'POST':
+        #if await request.form.get('submit_button') == 'Do Something':
+        #if (await request.form)['submit_button'] == 'Something':
+        #if  request.form['submit_button'] == 'Do Something':
+        #    print("Do something")
+        #elif request.form.get('submit_button') == 'Do Something Else':
+        if (await request.form)['submit_button'] == 'Do Something Else':
+        #elif request.form['submit_button'] == 'Do Something Else':
+            print("Do something else")
+            return '''
+                  <h1>Do something else</h1>'''
+        else:
+            print("None")
+            pass # unknown
+    elif request.method == 'GET':
+        print("Rendering")
+        return await render_template('leg.html',headings=headings)
+
+@app.route("/leg2", methods=['GET','POST'])
+async def leg2():
+    headline = htnats.headlineget()
+    headings = []
+    print(f"Request method: {request.method}")
+    for i in headline:
+        headings.append(i[0])
+    if request.method == 'POST':
+        #language = request.args.get('language')
+        #framework = request.args.get('framework')
+        language = (await request.form)['language']
+        framework = (await request.form)['framework']
+        return '''
+                  <h1>The language value is: {}</h1>
+                  <h1>The framework value is: {}</h1>'''.format(language, framework)
+    elif request.method == 'GET':
+        print("Rendering")
+        return '''
+           <form method="POST">
+               <div><label>Language: <input type="text" name="language"></label></div>
+               <div><label>Framework: <input type="text" name="framework"></label></div>
+               <input type="submit" value="Submit">
+           </form>'''
+
+@app.route('/alldevices/<mbus_device>')
+async def alldevices(mbus_device):
+    headline =  htnats.headlineget()
+    headings = []
+    for i in headline:
+        headings.append(i[0])
+    return await render_template(f'{mbus_device}.html',headings=headings)
+    #return await render_template('stand2.html',headings=headings)
 
 @app.on("*")
 async def on_message(message, sid, *args):
