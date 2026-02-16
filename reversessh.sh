@@ -1,5 +1,5 @@
 #!/bin/bash
-REMOTE_HOST="93.166.84.21"
+REMOTE_HOST="heth.dk"
 REMOTE_PORT="9998"
 REMOTE_USER="heth"
 

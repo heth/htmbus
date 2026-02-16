@@ -41,21 +41,21 @@ class QuartSIO:
         self.start_background_task = self.sio.start_background_task
 
     async def _run(self, host: str, port: int):
+        menu_items = (branding,
+           View('Home page', 'index'),
+           View('Status', 'status'),
+           View('Stand 1', 'stand1'),
+           View('Stand 2', 'stand2'),
+           View('Devices', 'leg'),
+           View('leg2', 'leg2'),
+         )
         try:
             easyyaml.init(yamlfile)
             log.init(level=3)
             await htnats.init()
             views.init(self._quart_app)
             nav=Nav(self._quart_app)
-            nav.register_element('mbus_navbar', Navbar(branding, #'Mercantec',
-                                           View('Home page', 'index'),
-                                           View('Status', 'status'),
-                                           View('Stand 1', 'stand1'),
-                                           View('Stand 2', 'stand2'),
-                                           View('Devices', 'leg'),
-                                           View('leg2', 'leg2'),
-                                           #View('Alle stande', 'alldevices'),
-                                           ))
+            nav.register_element('mbus_navbar', Navbar(*menu_items))
             Bootstrap(self._quart_app)
             img()
             self.sio.start_background_task(scroll_worker)

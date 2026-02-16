@@ -38,7 +38,8 @@ printf "**************************************************\n"
 }
 echo -en "Cheking if libmbus and M-Bus client installed.....: "
 
-
+echo "Press enter to continue :-) "
+read DUMMY
 # Install libmbus if not already installed
 if  ! mbus-serial-request-data >/dev/null 2>&1
 then
@@ -48,7 +49,7 @@ then
 		apt -y install $LIBMBUS_PACK
 	else	
 		install_c_dev_tools
-   		run_cmd sudo -H -u $USER git clone https://github.com/rscada/libmbus
+   		#run_cmd sudo -H -u $USER git clone https://github.com/rscada/libmbus
    		cd libmbus/
     	run_cmd sudo -H -u $USER ./build-deb.sh
     	run_cmd sudo -H -u $USER ./configure

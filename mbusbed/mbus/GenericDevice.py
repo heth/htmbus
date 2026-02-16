@@ -3,11 +3,12 @@ import asyncio
 import locale
 from mbus import mbus 
 from mbus import kam603 #, gav340     # M-Bus device specific modules
+from mbus import gav540 #, gav340     # M-Bus device specific modules
 
 # Call wrapper for M-Bus device specific modules
 wrap = {
     "kam603": kam603,
-#    "gav340": gav340
+    "gav540": gav540
 }
 
 """
