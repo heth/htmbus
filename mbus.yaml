@@ -4,18 +4,13 @@
 #  - mbustb   - M-Bus ThingsBoard daemon - Communicates with IoT ThingsBoard using MQTT
 #  - mbusweb  - Flask WEB-server daemon - showing basic information on M-Bus devices
 
-#DEBUG: Used only for development
-# if mqttpub = True, all mbus-readings are published to the mqttbroker with mqttsubject
-# if mqttsub = True, no mbus-readings are performed from serial port. Instead mbus-readings are 
-#    subscribed from mqttbroker using mqttsubject. 
 debug:
   mqttpub: True
   mqttsub: False
-  mqttbroker: "93.166.84.21"
+  mqttbroker: "" #"93.166.84.21"
   mqttsubject: "mbus/debug/raw"
-# mqttuser and mqttpassword are optional 
-#  mqttuser: "USERNAME"
-#  mqttpassword: "PASSWORD"
+  mqttuser: ""
+  mqttpassword: ""
 
 services:
   identity:
@@ -47,7 +42,6 @@ mqtt:
   gatewaytopic: "v1/gateway/telemetry"
   request: "v1/devices/me/rpc/request/+"
   brokerip: "192.168.1.81"
-  #brokerip: "10.128.201.15"
   brokerport: "1883"
   username: "heth"
   password: "l8heise"
@@ -65,11 +59,9 @@ mbus:
   pollinterval: 60
   csvdir: "/var/www/mbus/csv/" # CSV files directory
   devices:
-    - {name: "stand1", address: 68, type: "kam603", description: "Heat meter stand 1"}
-    - {name: "stand1p", address: 69, type: "kam603", description: "Power meter stand 1"}
-    #- {group: "stand1", name: "heat 1", address: 70}
-    #- {group: "stand1", name: "power 1", address: 71}
-    #- {name: "stand4", address: 71}
+    - {name: "plant", address: 68, type: "kam603", description: "Heat meter from plant",multiframe: False, frames: 1}
+    - {name: "home_1", address: 86, type: "kam603", description: "Heat meter home 1",multiframe: False, frames: 1}
+    - {name: "heat_pump", address: 11, type: "gav540", description: "Power meter heat pump",multiframe: True, frames: 5}
     
 # Small 3.3 volts 2x20 characters LCD display
 # Used by displayd daemon
@@ -93,6 +85,6 @@ meters:
       - {version: 53, name: "Multical 603", python: "kam603"}
 #  GAV: "Carlo Gavazzi"
   GAV:
-    - {version: 198, name: "EM330-DIN", python: "gav340"}
+    - {version: 222, name: "EM540-DIN", python: "gav540"}
     - {version: 199, name: "EM340-DIN", python: "gav340"}
 

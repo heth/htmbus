@@ -63,7 +63,9 @@ def open(address):
         'error':  0,             # Number of failed reads
         'manufacturer': None,    # Fx. Kamstrup
         'model': None,           # Fx. Multical 603
-        'serial': None           # Serial number of device
+        'serial': None,          # Serial number of device
+        'multiframe' : False,    # Multiframe - some M-bus devices use multiframes/telegrams
+        'frames': 1              # Number of frames to fetch when multiframe = True
     }
     return (devdesc)
 
